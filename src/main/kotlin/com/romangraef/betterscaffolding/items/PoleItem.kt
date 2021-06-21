@@ -1,5 +1,6 @@
 package com.romangraef.betterscaffolding.items
 
+import com.romangraef.betterscaffolding.blocks.ScaffoldMicroBlock
 import com.romangraef.betterscaffolding.registries.BBlock
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
@@ -61,7 +62,7 @@ class PoleItem(settings: Settings) : Item(settings) {
             if (player?.isCreative != true)
                 itemStack.count--
             // TODO: player?.incrementStat(Stat)
-            world.setBlockState(position, BBlock.pole.defaultState)
+            world.setBlockState(position, BBlock.scaffoldMicroBlock.defaultState.with(ScaffoldMicroBlock.POLE_EAST, true))
         }
         return ActionResult.CONSUME_PARTIAL
     }
