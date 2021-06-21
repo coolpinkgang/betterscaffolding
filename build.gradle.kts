@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "1.5.10"
     id("fabric-loom") version "0.9.9"
+    id("com.github.eutro.hierarchical-lang") version "1.1.3"
 }
 
 val modId: String by project
@@ -46,5 +47,8 @@ dependencies {
 tasks.processResources {
     filesMatching("fabric.mod.json") {
         expand(project.properties)
+    }
+    filesMatching("**/lang/*.json") {
+        flattenJson(this)
     }
 }
