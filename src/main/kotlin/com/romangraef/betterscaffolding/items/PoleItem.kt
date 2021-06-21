@@ -13,56 +13,48 @@ import net.minecraft.world.World
 import kotlin.math.abs
 
 class PoleItem(settings: Settings) : Item(settings) {
-    override fun useOnBlock(context: ItemUsageContext?): ActionResult {
-        context ?: return super.useOnBlock(context)
-        if (context.hitsInsideBlock()) return super.useOnBlock(context)
-        val world = context.world
-        return when (context.side) {
+
+    companion object {
+        internal val ItemUsageContext.placeDirection get() = when (side) {
             Direction.UP, Direction.DOWN -> {
-                val x = context.hitPos.x - context.blockPos.x - 0.5
-                val z = context.hitPos.z - context.blockPos.z - 0.5
-                val direction = if (abs(z) < abs(x)) {
+                val x = hitPos.x - blockPos.x - 0.5
+                val z = hitPos.z - blockPos.z - 0.5
+                if (abs(z) < abs(x)) {
                     if (x < 0) Direction.WEST else Direction.EAST
                 } else {
                     if (z < 0) Direction.NORTH else Direction.SOUTH
                 }
-
-                placeBlock(
-                    context.player,
-                    context.stack,
-                    context.world, context.blockPos.offset(context.side), direction
-                )
             }
-            else -> placeBlock(
-                context.player,
-                context.stack,
-                context.world,
-                context.blockPos.offset(context.side),
-                context.side.opposite
-            )
+            else -> side
+        }
+        internal fun Direction.toBlockStateField() = when (this) {
+            Direction.NORTH -> ScaffoldMicroBlock.POLE_NORTH
+            Direction.SOUTH -> ScaffoldMicroBlock.POLE_SOUTH
+            Direction.WEST -> ScaffoldMicroBlock.POLE_WEST
+            Direction.EAST -> ScaffoldMicroBlock.POLE_EAST
+            else -> throw IllegalStateException()
         }
     }
 
-    fun placeBlock(
-        player: PlayerEntity?,
-        itemStack: ItemStack,
-        world: World,
-        position: BlockPos,
-        side: Direction
-    ): ActionResult {
-        if (!world.getBlockState(position).isAir) {
+    override fun useOnBlock(context: ItemUsageContext?): ActionResult {
+        context ?: return super.useOnBlock(context)
+        if (context.hitsInsideBlock()) return super.useOnBlock(context)
+        if (!context.world.getBlockState(context.blockPos).isAir) {
             return ActionResult.FAIL
         }
-        if (!world.canSetBlock(position)) {
+        if (!context.world.canSetBlock(context.blockPos)) {
             return ActionResult.FAIL
         }
-        if (!world.canPlayerModifyAt(player, position))
+        if (!context.world.canPlayerModifyAt(context.player, context.blockPos))
             return ActionResult.FAIL
-        if (!world.isClient) {
-            if (player?.isCreative != true)
-                itemStack.count--
+        if (!context.world.isClient) {
+            if (context.player?.isCreative != true)
+                context.stack.count--
             // TODO: player?.incrementStat(Stat)
-            world.setBlockState(position, BBlock.scaffoldMicroBlock.defaultState.with(ScaffoldMicroBlock.POLE_EAST, true))
+            context.world.setBlockState(
+                context.blockPos,
+                BBlock.scaffoldMicroBlock.defaultState.with(context.placeDirection.toBlockStateField(), true)
+            )
         }
         return ActionResult.CONSUME_PARTIAL
     }
