@@ -7,6 +7,7 @@ import net.minecraft.entity.MovementType
 import net.minecraft.entity.data.DataTracker
 import net.minecraft.entity.data.TrackedData
 import net.minecraft.entity.data.TrackedDataHandlerRegistry
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.network.Packet
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
@@ -86,6 +87,10 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
         clientY = y
         clientZ = z
         clientInterpolationSteps = interpolationSteps + 2
+    }
+
+    override fun getPickBlockStack(): ItemStack? {
+        return super.getPickBlockStack() // TODO
     }
 }
 

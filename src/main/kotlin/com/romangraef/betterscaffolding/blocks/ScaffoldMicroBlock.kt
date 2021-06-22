@@ -24,11 +24,12 @@ class ScaffoldMicroBlock(settings: Settings) : Block(settings) {
             private var _value: T? = null
             override fun getValue(thisRef: Any, property: KProperty<*>): T {
                 return this._value ?: kotlin.run {
-                    _value = getter(property.name)
+                    _value = getter(property.name.lowercase())
                     _value!!
                 }
             }
         }
+
         val POLE_NORTH by property(BooleanProperty::of)
         val POLE_SOUTH by property(BooleanProperty::of)
         val POLE_WEST by property(BooleanProperty::of)
@@ -53,11 +54,11 @@ class ScaffoldMicroBlock(settings: Settings) : Block(settings) {
     override fun appendProperties(builder: StateManager.Builder<Block, BlockState>) {
         builder.add(POLE_NORTH, POLE_SOUTH, POLE_WEST, POLE_EAST)
     }
-    
+
     fun addPoleShape(shape: VoxelShape, state: BlockState): VoxelShape {
         fun poleAt(baseX: Double, baseZ: Double) =
             VoxelShapes.cuboid(baseX - 0.1, 0.0, baseZ - 0.1, baseX + 0.1, 1.0, baseZ + 0.1)
-        
+
         var shape = shape
         if (hasPoleNorthWest(state))
             shape = VoxelShapes.combine(shape, poleAt(0.0 + poleX, 0.0 + poleY), BooleanBiFunction.OR)
@@ -68,9 +69,8 @@ class ScaffoldMicroBlock(settings: Settings) : Block(settings) {
         if (hasPoleSouthEast(state))
             shape = VoxelShapes.combine(shape, poleAt(1.0 - poleX, 1.0 - poleY), BooleanBiFunction.OR)
         return shape
-        
     }
-    
+
     fun addPlankShape(shape: VoxelShape, position: BlockPos, state: BlockState): VoxelShape =
         if (!state[PLANKS]) shape else VoxelShapes.combine(
             shape,
