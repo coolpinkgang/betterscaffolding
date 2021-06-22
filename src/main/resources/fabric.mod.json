@@ -21,6 +21,12 @@
         "value": "com.romangraef.betterscaffolding.BetterScaffolding"
       }
     ],
+    "client": [
+      {
+        "adapter": "kotlin",
+        "value": "com.romangraef.betterscaffolding.BetterScaffoldingClient"
+      }
+    ],
     "modmenu": [
       {
         "adapter": "kotlin",

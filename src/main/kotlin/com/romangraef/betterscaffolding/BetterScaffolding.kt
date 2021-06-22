@@ -6,11 +6,11 @@ import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Identifier
-import java.util.logging.Logger
+import org.slf4j.LoggerFactory
 
 object BetterScaffolding : ModInitializer {
     const val modid: String = "betterscaffolding"
-    val logger = Logger.getLogger(modid)
+    val logger = LoggerFactory.getLogger(BetterScaffolding::class.java)
 
     val registries = listOf(
         BItems, BBlock

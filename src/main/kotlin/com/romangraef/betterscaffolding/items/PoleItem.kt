@@ -39,20 +39,21 @@ class PoleItem(settings: Settings) : Item(settings) {
     override fun useOnBlock(context: ItemUsageContext?): ActionResult {
         context ?: return super.useOnBlock(context)
         if (context.hitsInsideBlock()) return super.useOnBlock(context)
-        if (!context.world.getBlockState(context.blockPos).isAir) {
+        val placePos = context.blockPos.offset(context.side)
+        if (!context.world.getBlockState(placePos).isAir) {
             return ActionResult.FAIL
         }
-        if (!context.world.canSetBlock(context.blockPos)) {
+        if (!context.world.canSetBlock(placePos)) {
             return ActionResult.FAIL
         }
-        if (!context.world.canPlayerModifyAt(context.player, context.blockPos))
+        if (!context.world.canPlayerModifyAt(context.player, placePos))
             return ActionResult.FAIL
         if (!context.world.isClient) {
             if (context.player?.isCreative != true)
                 context.stack.count--
             // TODO: player?.incrementStat(Stat)
             context.world.setBlockState(
-                context.blockPos,
+                placePos,
                 BBlock.scaffoldMicroBlock.defaultState.with(context.placeDirection.toBlockStateField(), true)
             )
         }

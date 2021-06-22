@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "betterscaffolding:block/micro_block"
+    }
+  }
+}
