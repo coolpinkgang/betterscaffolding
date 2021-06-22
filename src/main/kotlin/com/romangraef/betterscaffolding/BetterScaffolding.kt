@@ -2,7 +2,9 @@ package com.romangraef.betterscaffolding
 
 import com.romangraef.betterscaffolding.registries.BBlock
 import com.romangraef.betterscaffolding.registries.BItems
+import com.romangraef.betterscaffolding.registries.REntities
 import net.fabricmc.api.ModInitializer
+import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricDefaultAttributeRegistry
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Identifier
@@ -13,7 +15,7 @@ object BetterScaffolding : ModInitializer {
     val logger = LoggerFactory.getLogger(BetterScaffolding::class.java)
 
     val registries = listOf(
-        BItems, BBlock
+        BItems, BBlock, REntities
     )
 
     fun id(string: String) = Identifier(modid, string)
