@@ -21,6 +21,7 @@ class ForkliftRenderer<T : ForkliftEntity>(ctx: EntityRendererFactory.Context) :
     ) {
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light)
         matrices.push()
+        matrices.translate(0.0, 1.5, 0.2)
         matrices.scale(1F, -1F, 1F)
         model.render(matrices, vertexConsumers.getBuffer(model.getLayer(getTexture(entity))), light, OverlayTexture.DEFAULT_UV, 1F, 1F, 1F, 1F)
         matrices.pop()
