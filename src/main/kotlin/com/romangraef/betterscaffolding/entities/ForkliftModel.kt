@@ -9,8 +9,10 @@ import net.minecraft.client.render.entity.model.EntityModel
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.entity.Entity
 
-class ForkliftModel(private val root: ModelPart) : EntityModel<Entity?>() {
-    private val fork: ModelPart = root.getChild("fork")
+class ForkliftModel(data: Pair<ModelPart, ModelPart>) : EntityModel<Entity?>() {
+    val root = data.first
+    val fork = data.second
+
     override fun setAngles(
         entity: Entity?,
         limbSwing: Float,
@@ -41,7 +43,7 @@ class ForkliftModel(private val root: ModelPart) : EntityModel<Entity?>() {
     }
 
     companion object {
-        val modelData: ModelPart
+        val modelData: Pair<ModelPart, ModelPart>
             get() {
                 val modelData = ModelData()
                 val modelPartData = modelData.root
@@ -77,14 +79,15 @@ class ForkliftModel(private val root: ModelPart) : EntityModel<Entity?>() {
                         .uv(80, 78).cuboid(4.0f, -30.0f, -17.0f, 4.0f, 25.0f, 1.0f, Dilation(0.0f)).mirrored(false),
                     ModelTransform.of(0.0f, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f)
                 )
-                val fork = modelPartData.addChild(
+                val forkData = ModelData()
+                val fork = forkData.root.addChild(
                     "fork",
                     ModelPartBuilder.create().uv(40, 76).cuboid(4.0f, -1.0f, -15.0f, 4.0f, 1.0f, 16.0f, Dilation(0.0f))
                         .mirrored(false)
                         .uv(0, 76).cuboid(-8.0f, -1.0f, -15.0f, 4.0f, 1.0f, 16.0f, Dilation(0.0f)).mirrored(false),
                     ModelTransform.of(0.0f, 19.0f, -18.0f, 0.0f, 0.0f, 0.0f)
                 )
-                return modelPartData.createPart(128, 128)
+                return modelPartData.createPart(128, 128) to forkData.root.createPart(128, 128)
             }
     }
 

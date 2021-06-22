@@ -23,7 +23,27 @@ class ForkliftRenderer<T : ForkliftEntity>(ctx: EntityRendererFactory.Context) :
         matrices.push()
         matrices.translate(0.0, 1.5, 0.2)
         matrices.scale(1F, -1F, 1F)
-        model.render(matrices, vertexConsumers.getBuffer(model.getLayer(getTexture(entity))), light, OverlayTexture.DEFAULT_UV, 1F, 1F, 1F, 1F)
+        model.render(
+            matrices,
+            vertexConsumers.getBuffer(model.getLayer(getTexture(entity))),
+            light,
+            OverlayTexture.DEFAULT_UV,
+            1F,
+            1F,
+            1F,
+            1F
+        )
+        matrices.translate(0.0, -ForkliftEntity.MAX_FORK_HEIGHT * entity.forkHeight, 0.0)
+        model.fork.render(
+            matrices,
+            vertexConsumers.getBuffer(model.getLayer(getTexture(entity))),
+            light,
+            OverlayTexture.DEFAULT_UV,
+            1f,
+            1f,
+            1f,
+            1f
+        )
         matrices.pop()
     }
 }

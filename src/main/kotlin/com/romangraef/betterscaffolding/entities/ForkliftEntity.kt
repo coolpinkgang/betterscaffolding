@@ -24,6 +24,7 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
     private var clientInterpolationSteps: Int = -1
 
     companion object {
+        const val MAX_FORK_HEIGHT = 1.4
         val FORK_HEIGHT = DataTracker.registerData(ForkliftEntity::class.java, TrackedDataHandlerRegistry.FLOAT)
     }
 
