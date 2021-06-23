@@ -7,6 +7,7 @@ import net.minecraft.client.render.entity.EntityRenderer
 import net.minecraft.client.render.entity.EntityRendererFactory
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.Identifier
+import net.minecraft.util.math.Vec3f
 
 class ForkliftRenderer<T : ForkliftEntity>(ctx: EntityRendererFactory.Context) : EntityRenderer<T>(ctx) {
     val model = ForkliftModel(ForkliftModel.modelData)
@@ -21,6 +22,7 @@ class ForkliftRenderer<T : ForkliftEntity>(ctx: EntityRendererFactory.Context) :
     ) {
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light)
         matrices.push()
+        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180F - yaw))
         matrices.translate(0.0, 1.5, 0.2)
         matrices.scale(1F, -1F, 1F)
         model.render(

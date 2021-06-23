@@ -2,6 +2,8 @@ package com.romangraef.betterscaffolding.entities
 
 import com.romangraef.betterscaffolding.registries.BItems
 import com.romangraef.betterscaffolding.registries.REntities
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.MovementType
@@ -9,12 +11,17 @@ import net.minecraft.entity.damage.DamageSource
 import net.minecraft.entity.data.DataTracker
 import net.minecraft.entity.data.TrackedData
 import net.minecraft.entity.data.TrackedDataHandlerRegistry
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.vehicle.BoatEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.network.Packet
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
+import net.minecraft.util.ActionResult
+import net.minecraft.util.Hand
+import net.minecraft.util.math.Direction
 import net.minecraft.util.math.MathHelper
+import net.minecraft.util.math.Vec3d
 import net.minecraft.world.GameRules
 import net.minecraft.world.World
 import kotlin.properties.ReadWriteProperty
@@ -27,6 +34,10 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
     private var clientY: Double = 0.0
     private var clientZ: Double = 0.0
     private var clientInterpolationSteps: Int = -1
+    private var pressingRight = false
+    private var pressingBack = false
+    private var pressingLeft = false
+    private var pressingForward = false
 
     companion object {
         const val MAX_FORK_HEIGHT = 1.4
@@ -37,9 +48,30 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
         return BoatEntity.canCollide(this, other)
     }
 
-    override fun isPushable(): Boolean = true
+    override fun getMovementDirection(): Direction = horizontalFacing.rotateYClockwise()
+
+    override fun isPushable(): Boolean = false
     override fun isCollidable(): Boolean = true
     override fun collides(): Boolean = !isRemoved
+
+    override fun interact(player: PlayerEntity, hand: Hand): ActionResult {
+        if (player.shouldCancelInteraction())
+            return ActionResult.PASS
+        if (hasPassengers())
+            return ActionResult.PASS
+        if (world.isClient)
+            return ActionResult.SUCCESS
+        return if (player.startRiding(this)) ActionResult.CONSUME else ActionResult.PASS
+    }
+
+
+    @Environment(EnvType.CLIENT)
+    fun setInputs(pressingLeft: Boolean, pressingRight: Boolean, pressingForward: Boolean, pressingBack: Boolean) {
+        this.pressingBack = pressingBack
+        this.pressingRight = pressingRight
+        this.pressingLeft = pressingLeft
+        this.pressingForward = pressingForward
+    }
 
     override fun damage(source: DamageSource, amount: Float): Boolean {
         if (!world.isClient && !isRemoved) {
@@ -54,9 +86,11 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
 
     var forkHeight by dataTracker.wrap(FORK_HEIGHT)
 
+    override fun getMountedHeightOffset(): Double = 0.0
     override fun initDataTracker() {
         dataTracker.startTracking(FORK_HEIGHT, 0f)
     }
+
 
     override fun readCustomDataFromNbt(nbt: NbtCompound?) {
         nbt ?: return
@@ -71,7 +105,9 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
     override fun createSpawnPacket(): Packet<*> = EntitySpawnS2CPacket(this)
     override fun tick() {
         super.tick()
-        if (!world.isClient) {
+        if (isLogicalSideForUpdatingMovement) {
+            if (world.isClient)
+                updateClientMovement()
             if (!hasNoGravity()) {
                 val gravity = if (isTouchingWater) -0.005 else -0.04
                 velocity = velocity.add(0.0, gravity, 0.0)
@@ -79,22 +115,42 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
             checkBlockCollision()
             updateWaterState()
             move(MovementType.SELF, velocity)
-            velocity = velocity.multiply(0.95)
-        } else {
-            moveSmooth();
+            velocity = Vec3d(0.0, velocity.y * 0.95, 0.0)
+        }
+        moveSmooth();
+    }
+
+    private fun updateClientMovement() {
+        if (hasPassengers()) {
+            val p = primaryPassenger ?: return
+            when {
+                this.pressingLeft > this.pressingRight -> {
+                    yaw -= 2
+                }
+                this.pressingRight > this.pressingLeft -> {
+                    yaw += 2
+                }
+                this.pressingForward -> {
+                    move(MovementType.PLAYER, Vec3d.fromPolar(0f, yaw).normalize().multiply(0.1))
+                }
+            }
         }
     }
 
+    override fun getPrimaryPassenger(): Entity? = firstPassenger
+
     private fun moveSmooth() {
+        if (isLogicalSideForUpdatingMovement) {
+            clientInterpolationSteps = -1
+            updateTrackedPosition(x, y, z)
+        }
         if (clientInterpolationSteps > 0) {
             val nx = x + (clientX - x) / clientInterpolationSteps
             val ny = y + (clientY - y) / clientInterpolationSteps
             val nz = z + (clientZ - z) / clientInterpolationSteps
             setPosition(nx, ny, nz)
-        } else {
-            refreshPosition()
+            setRotation(yaw, pitch)
         }
-        setRotation(yaw, pitch)
     }
 
     override fun updateTrackedPositionAndAngles(
