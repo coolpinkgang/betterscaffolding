@@ -57,7 +57,7 @@ class PoleItem(settings: Settings) : Item(settings) {
                 BBlock.scaffoldMicroBlock.defaultState.with(context.placeDirection.toBlockStateField(), true)
             )
         }
-        return ActionResult.CONSUME_PARTIAL
+        return ActionResult.SUCCESS
     }
 
 }

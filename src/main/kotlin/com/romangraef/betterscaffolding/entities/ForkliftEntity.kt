@@ -1,17 +1,21 @@
 package com.romangraef.betterscaffolding.entities
 
+import com.romangraef.betterscaffolding.registries.BItems
 import com.romangraef.betterscaffolding.registries.REntities
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.MovementType
+import net.minecraft.entity.damage.DamageSource
 import net.minecraft.entity.data.DataTracker
 import net.minecraft.entity.data.TrackedData
 import net.minecraft.entity.data.TrackedDataHandlerRegistry
+import net.minecraft.entity.vehicle.BoatEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.network.Packet
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
 import net.minecraft.util.math.MathHelper
+import net.minecraft.world.GameRules
 import net.minecraft.world.World
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -27,6 +31,25 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
     companion object {
         const val MAX_FORK_HEIGHT = 1.4
         val FORK_HEIGHT = DataTracker.registerData(ForkliftEntity::class.java, TrackedDataHandlerRegistry.FLOAT)
+    }
+
+    override fun collidesWith(other: Entity): Boolean {
+        return BoatEntity.canCollide(this, other)
+    }
+
+    override fun isPushable(): Boolean = true
+    override fun isCollidable(): Boolean = true
+    override fun collides(): Boolean = !isRemoved
+
+    override fun damage(source: DamageSource, amount: Float): Boolean {
+        if (!world.isClient && !isRemoved) {
+            if (isInvulnerableTo(source)) return false
+            removeAllPassengers()
+            remove(RemovalReason.KILLED)
+            if (world.gameRules.getBoolean(GameRules.DO_ENTITY_DROPS) && !source.isSourceCreativePlayer)
+                dropStack(ItemStack(BItems.forklift))
+        }
+        return true
     }
 
     var forkHeight by dataTracker.wrap(FORK_HEIGHT)

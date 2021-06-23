@@ -1,7 +1,8 @@
 {
-  "item":{
-    "betterscaffolding":{
-      "pole": "Pole"
+  "item": {
+    "betterscaffolding": {
+      "pole": "Pole",
+      "forklift": "Forklift"
     }
   }
 }

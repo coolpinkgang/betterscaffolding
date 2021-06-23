@@ -6,6 +6,7 @@ import com.romangraef.betterscaffolding.registries.REntities
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricDefaultAttributeRegistry
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
+import net.minecraft.entity.mob.MobEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Identifier
 import org.slf4j.LoggerFactory
@@ -25,6 +26,7 @@ object BetterScaffolding : ModInitializer {
     override fun onInitialize() {
         logger.info("Loaded better scaffolding")
         registries.forEach { it.registerAll() }
+
     }
 }
 
