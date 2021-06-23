@@ -42,8 +42,8 @@ class PoleItem(settings: Settings) : Item(settings) {
         context ?: return super.useOnBlock(context)
         if (context.hitsInsideBlock()) return super.useOnBlock(context)
         val placePos =
-            if (context.world.getBlockState(context.blockPos).block == BBlock.scaffoldMicroBlock) context.blockPos
-            else context.blockPos.offset(context.side)
+            if (context.world.getBlockState(context.blockPos).block == BBlock.scaffoldMicroBlock)
+                context.blockPos.offset(Direction.UP) else context.blockPos.offset(context.side)
         if (!(context.world.getBlockState(placePos).isAir
                     || context.world.getBlockState(placePos).block == BBlock.scaffoldMicroBlock))
             return ActionResult.FAIL

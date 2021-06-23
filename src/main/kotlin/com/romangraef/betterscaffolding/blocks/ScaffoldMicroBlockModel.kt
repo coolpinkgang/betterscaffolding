@@ -22,6 +22,14 @@ class ScaffoldMicroBlockModel : UnbakedModel {
             ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_leg_se"), "")
         private val SUPPORT_LEG_SW_MODEL =
             ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_leg_sw"), "")
+        private val SUPPORT_CONNECTION_N_MODEL =
+            ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_n"), "")
+        private val SUPPORT_CONNECTION_S_MODEL =
+            ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_s"), "")
+        private val SUPPORT_CONNECTION_W_MODEL =
+            ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_w"), "")
+        private val SUPPORT_CONNECTION_E_MODEL =
+            ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_e"), "")
     }
 
     override fun getModelDependencies(): MutableCollection<Identifier> = mutableSetOf(
@@ -29,6 +37,10 @@ class ScaffoldMicroBlockModel : UnbakedModel {
         SUPPORT_LEG_NW_MODEL,
         SUPPORT_LEG_SE_MODEL,
         SUPPORT_LEG_SW_MODEL,
+        SUPPORT_CONNECTION_N_MODEL,
+        SUPPORT_CONNECTION_S_MODEL,
+        SUPPORT_CONNECTION_W_MODEL,
+        SUPPORT_CONNECTION_E_MODEL,
     )
 
     override fun getTextureDependencies(
@@ -46,12 +58,20 @@ class ScaffoldMicroBlockModel : UnbakedModel {
         val supportLegNW = loader.bake(SUPPORT_LEG_NW_MODEL, rotationContainer)!!
         val supportLegSE = loader.bake(SUPPORT_LEG_SE_MODEL, rotationContainer)!!
         val supportLegSW = loader.bake(SUPPORT_LEG_SW_MODEL, rotationContainer)!!
+        val supportConnectionN = loader.bake(SUPPORT_CONNECTION_N_MODEL, rotationContainer)!!
+        val supportConnectionS = loader.bake(SUPPORT_CONNECTION_S_MODEL, rotationContainer)!!
+        val supportConnectionW = loader.bake(SUPPORT_CONNECTION_W_MODEL, rotationContainer)!!
+        val supportConnectionE = loader.bake(SUPPORT_CONNECTION_E_MODEL, rotationContainer)!!
         return MultipartBakedModel(
             listOf(
                 ImmutablePair.of(Predicate { ScaffoldMicroBlock.hasPoleNorthEast(it) }, supportLegNE),
                 ImmutablePair.of(Predicate { ScaffoldMicroBlock.hasPoleNorthWest(it) }, supportLegNW),
                 ImmutablePair.of(Predicate { ScaffoldMicroBlock.hasPoleSouthEast(it) }, supportLegSE),
                 ImmutablePair.of(Predicate { ScaffoldMicroBlock.hasPoleSouthWest(it) }, supportLegSW),
+                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.POLE_NORTH] && it[ScaffoldMicroBlock.PLANKS]}, supportConnectionN),
+                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.POLE_SOUTH] && it[ScaffoldMicroBlock.PLANKS]}, supportConnectionS),
+                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.POLE_WEST] && it[ScaffoldMicroBlock.PLANKS]}, supportConnectionW),
+                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.POLE_EAST] && it[ScaffoldMicroBlock.PLANKS]}, supportConnectionE),
             )
         )
     }

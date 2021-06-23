@@ -55,8 +55,7 @@ class ScaffoldMicroBlock(settings: Settings) : Block(settings) {
     }
 
     override fun appendProperties(builder: StateManager.Builder<Block, BlockState>) {
-        builder.add(POLE_NORTH, POLE_SOUTH, POLE_WEST, POLE_EAST)
-        builder.add(PLANKS)
+        builder.add(POLE_NORTH, POLE_SOUTH, POLE_WEST, POLE_EAST, PLANKS)
     }
 
     fun addPoleShape(shape: VoxelShape, state: BlockState): VoxelShape {
