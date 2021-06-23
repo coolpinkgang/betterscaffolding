@@ -49,7 +49,7 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
             if (world.gameRules.getBoolean(GameRules.DO_ENTITY_DROPS) && !source.isSourceCreativePlayer)
                 dropStack(ItemStack(BItems.forklift))
         }
-        return true
+        return false
     }
 
     var forkHeight by dataTracker.wrap(FORK_HEIGHT)
@@ -112,9 +112,7 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
         clientInterpolationSteps = interpolationSteps + 2
     }
 
-    override fun getPickBlockStack(): ItemStack? {
-        return super.getPickBlockStack() // TODO
-    }
+    override fun getPickBlockStack(): ItemStack = ItemStack(BItems.forklift)
 }
 
 private fun <T> DataTracker.wrap(trackedData: TrackedData<T>): ReadWriteProperty<Any?, T> =
