@@ -40,9 +40,9 @@ class ScaffoldMicroBlock(settings: Settings) : Block(settings) {
         fun hasPoleNorthEast(state: BlockState) = state[POLE_NORTH] || state[POLE_EAST]
         fun hasPoleSouthWest(state: BlockState) = state[POLE_SOUTH] || state[POLE_WEST]
         fun hasPoleNorthWest(state: BlockState) = state[POLE_NORTH] || state[POLE_WEST]
-        val poleX = .0
-        val poleY = .0
         val poleSize = 0.0625
+        val poleX = .0 + poleSize
+        val poleY = .0 + poleSize
     }
 
     init {

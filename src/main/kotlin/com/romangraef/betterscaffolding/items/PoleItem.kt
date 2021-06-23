@@ -1,6 +1,8 @@
 package com.romangraef.betterscaffolding.items
 
 import com.romangraef.betterscaffolding.blocks.ScaffoldMicroBlock
+import com.romangraef.betterscaffolding.items.PoleItem.Companion.placeDirection
+import com.romangraef.betterscaffolding.items.PoleItem.Companion.toBlockStateField
 import com.romangraef.betterscaffolding.registries.BBlock
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
@@ -39,22 +41,23 @@ class PoleItem(settings: Settings) : Item(settings) {
     override fun useOnBlock(context: ItemUsageContext?): ActionResult {
         context ?: return super.useOnBlock(context)
         if (context.hitsInsideBlock()) return super.useOnBlock(context)
-        val placePos = context.blockPos.offset(context.side)
-        if (!context.world.getBlockState(placePos).isAir) {
+        val placePos =
+            if (context.world.getBlockState(context.blockPos).block == BBlock.scaffoldMicroBlock) context.blockPos
+            else context.blockPos.offset(context.side)
+        if (!(context.world.getBlockState(placePos).isAir
+                    || context.world.getBlockState(placePos).block == BBlock.scaffoldMicroBlock))
             return ActionResult.FAIL
-        }
-        if (!context.world.canSetBlock(placePos)) {
-            return ActionResult.FAIL
-        }
-        if (!context.world.canPlayerModifyAt(context.player, placePos))
-            return ActionResult.FAIL
+        if (!context.world.canSetBlock(placePos)) return ActionResult.FAIL
+        if (!context.world.canPlayerModifyAt(context.player, placePos)) return ActionResult.FAIL
         if (!context.world.isClient) {
             if (context.player?.isCreative != true)
                 context.stack.count--
             // TODO: player?.incrementStat(Stat)
+            val tmp = context.world.getBlockState(placePos)
+            val baseState = if (tmp.block == BBlock.scaffoldMicroBlock) tmp else BBlock.scaffoldMicroBlock.defaultState
             context.world.setBlockState(
                 placePos,
-                BBlock.scaffoldMicroBlock.defaultState.with(context.placeDirection.toBlockStateField(), true)
+                baseState.with(context.placeDirection.toBlockStateField(), true)
             )
         }
         return ActionResult.SUCCESS
