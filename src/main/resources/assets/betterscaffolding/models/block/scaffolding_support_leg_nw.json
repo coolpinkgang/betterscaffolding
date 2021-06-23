@@ -2,8 +2,8 @@
 	"credit": "Made with Blockbench",
 	"elements": [
 		{
-			"from": [15, 0, -1],
-			"to": [17, 16, 1],
+			"from": [-1, 0, -1],
+			"to": [1, 16, 1],
 			"color": 7,
 			"faces": {
 				"north": {"uv": [0, 0, 2, 16], "texture": "#missing"},

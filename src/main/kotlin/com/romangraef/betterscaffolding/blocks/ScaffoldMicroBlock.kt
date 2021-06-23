@@ -1,6 +1,7 @@
 package com.romangraef.betterscaffolding.blocks
 
 import com.romangraef.betterscaffolding.items.PoleItem
+import com.romangraef.betterscaffolding.registries.BItems
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.block.ShapeContext
@@ -39,8 +40,9 @@ class ScaffoldMicroBlock(settings: Settings) : Block(settings) {
         fun hasPoleNorthEast(state: BlockState) = state[POLE_NORTH] || state[POLE_EAST]
         fun hasPoleSouthWest(state: BlockState) = state[POLE_SOUTH] || state[POLE_WEST]
         fun hasPoleNorthWest(state: BlockState) = state[POLE_NORTH] || state[POLE_WEST]
-        val poleX = 0.25
-        val poleY = 0.25
+        val poleX = .0
+        val poleY = .0
+        val poleSize = 0.0625
     }
 
     init {
@@ -59,7 +61,14 @@ class ScaffoldMicroBlock(settings: Settings) : Block(settings) {
 
     fun addPoleShape(shape: VoxelShape, state: BlockState): VoxelShape {
         fun poleAt(baseX: Double, baseZ: Double) =
-            VoxelShapes.cuboid(baseX - 0.1, 0.0, baseZ - 0.1, baseX + 0.1, 1.0, baseZ + 0.1)
+            VoxelShapes.cuboid(
+                baseX - poleSize,
+                0.0,
+                baseZ - poleSize,
+                baseX + poleSize,
+                1.0,
+                baseZ + poleSize
+            )
 
         var shape = shape
         if (hasPoleNorthWest(state))
@@ -93,7 +102,7 @@ class ScaffoldMicroBlock(settings: Settings) : Block(settings) {
     }
 
     override fun getPickStack(world: BlockView?, pos: BlockPos?, state: BlockState?): ItemStack {
-        return ItemStack(PoleItem(Item.Settings()), 1) //TODO: maybe improve to select sub blocks
+        return ItemStack(BItems.pole, 1) //TODO: maybe improve to select sub blocks
     }
 
     override fun getCollisionShape(
