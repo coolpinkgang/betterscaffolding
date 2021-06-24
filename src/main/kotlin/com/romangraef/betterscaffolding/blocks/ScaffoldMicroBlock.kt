@@ -102,12 +102,19 @@ class ScaffoldMicroBlock(settings: Settings) : Block(settings) {
         return shape
     }
 
-    fun addPlankShape(shape: VoxelShape, state: BlockState): VoxelShape =
-        /*if (!state[PLANKS]) shape else*/ VoxelShapes.combine(
+    fun addPlankShape(shape: VoxelShape, state: BlockState): VoxelShape = when (state[PLANKS]!!) {
+        PlankDirection.NONE -> shape
+        PlankDirection.NORTH_SOUTH -> VoxelShapes.combine(
             shape,
-            VoxelShapes.cuboid(0.0, 15.0, 0.0, 16.0, 16.0, 16.0),
+            VoxelShapes.cuboid(1.0/8.0, 15.0 / 16.0, 0.0, 7.0/8.0, 1.0, 1.0),
             BooleanBiFunction.OR
         )
+        PlankDirection.WEST_EAST -> VoxelShapes.combine(
+            shape,
+            VoxelShapes.cuboid(0.0, 15.0 / 16.0, 1.0/8.0, 1.0, 1.0, 7.0/8.0),
+            BooleanBiFunction.OR
+        )
+    }
 
     override fun getOutlineShape(
         state: BlockState,
