@@ -68,10 +68,10 @@ class ScaffoldMicroBlockModel : UnbakedModel {
                 ImmutablePair.of(Predicate { ScaffoldMicroBlock.hasPoleNorthWest(it) }, supportLegNW),
                 ImmutablePair.of(Predicate { ScaffoldMicroBlock.hasPoleSouthEast(it) }, supportLegSE),
                 ImmutablePair.of(Predicate { ScaffoldMicroBlock.hasPoleSouthWest(it) }, supportLegSW),
-                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.POLE_NORTH] && it[ScaffoldMicroBlock.PLANKS]}, supportConnectionN),
-                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.POLE_SOUTH] && it[ScaffoldMicroBlock.PLANKS]}, supportConnectionS),
-                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.POLE_WEST] && it[ScaffoldMicroBlock.PLANKS]}, supportConnectionW),
-                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.POLE_EAST] && it[ScaffoldMicroBlock.PLANKS]}, supportConnectionE),
+                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.CONNECTION_N] }, supportConnectionN),
+                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.CONNECTION_S] }, supportConnectionS),
+                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.CONNECTION_W] }, supportConnectionW),
+                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.CONNECTION_E] }, supportConnectionE),
             )
         )
     }
