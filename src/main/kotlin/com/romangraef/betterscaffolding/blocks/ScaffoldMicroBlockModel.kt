@@ -30,6 +30,10 @@ class ScaffoldMicroBlockModel : UnbakedModel {
             ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_w"), "")
         private val SUPPORT_CONNECTION_E_MODEL =
             ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_e"), "")
+        private val PLANKS_NS_MODEL =
+            ModelIdentifier(BetterScaffolding.id("block/scaffolding_planks_ns"), "")
+        private val PLANKS_WE_MODEL =
+            ModelIdentifier(BetterScaffolding.id("block/scaffolding_planks_we"), "")
     }
 
     override fun getModelDependencies(): MutableCollection<Identifier> = mutableSetOf(
@@ -41,6 +45,8 @@ class ScaffoldMicroBlockModel : UnbakedModel {
         SUPPORT_CONNECTION_S_MODEL,
         SUPPORT_CONNECTION_W_MODEL,
         SUPPORT_CONNECTION_E_MODEL,
+        PLANKS_NS_MODEL,
+        PLANKS_WE_MODEL,
     )
 
     override fun getTextureDependencies(
@@ -62,6 +68,8 @@ class ScaffoldMicroBlockModel : UnbakedModel {
         val supportConnectionS = loader.bake(SUPPORT_CONNECTION_S_MODEL, rotationContainer)!!
         val supportConnectionW = loader.bake(SUPPORT_CONNECTION_W_MODEL, rotationContainer)!!
         val supportConnectionE = loader.bake(SUPPORT_CONNECTION_E_MODEL, rotationContainer)!!
+        val planksNS = loader.bake(PLANKS_NS_MODEL, rotationContainer)!!
+        val planksWE = loader.bake(PLANKS_WE_MODEL, rotationContainer)!!
         return MultipartBakedModel(
             listOf(
                 ImmutablePair.of(Predicate { ScaffoldMicroBlock.hasPoleNorthEast(it) }, supportLegNE),
@@ -72,6 +80,8 @@ class ScaffoldMicroBlockModel : UnbakedModel {
                 ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.CONNECTION_S] }, supportConnectionS),
                 ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.CONNECTION_W] }, supportConnectionW),
                 ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.CONNECTION_E] }, supportConnectionE),
+                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.PLANKS] == ScaffoldMicroBlock.PlankDirection.NORTH_SOUTH }, planksNS),
+                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.PLANKS] == ScaffoldMicroBlock.PlankDirection.WEST_EAST }, planksWE),
             )
         )
     }

@@ -1,5 +1,6 @@
 package com.romangraef.betterscaffolding.blocks
 
+import com.romangraef.betterscaffolding.BVoxelShapes
 import com.romangraef.betterscaffolding.registries.BItems
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
@@ -98,21 +99,29 @@ class ScaffoldMicroBlock(settings: Settings) : Block(settings) {
     fun addConnectionShape(shape: VoxelShape, state: BlockState): VoxelShape {
         var shape = shape
         if (state[CONNECTION_N])
-            shape = VoxelShapes.combine(shape, VoxelShapes.cuboid(1.0/16.0, 13.0/16.0, 0.5/16, 15.0/16.0, 15.0/16.0, 1.5/16.0), BooleanBiFunction.OR)
+            shape = VoxelShapes.combine(shape, BVoxelShapes.cuboidB(2, 13, 0.5, 12, 2, 1), BooleanBiFunction.OR)
+        if (state[CONNECTION_S])
+            shape = VoxelShapes.combine(shape, BVoxelShapes.cuboidB(2, 13, 14.5, 12, 2, 1), BooleanBiFunction.OR)
+        if (state[CONNECTION_W])
+            shape = VoxelShapes.combine(shape, BVoxelShapes.cuboidB(0.5, 13, 2, 1, 2, 12), BooleanBiFunction.OR)
+        if (state[CONNECTION_E])
+            shape = VoxelShapes.combine(shape, BVoxelShapes.cuboidB(14.5, 13, 2, 1, 2, 12), BooleanBiFunction.OR)
         return shape
     }
 
     fun addPlankShape(shape: VoxelShape, state: BlockState): VoxelShape = when (state[PLANKS]!!) {
         PlankDirection.NONE -> shape
-        PlankDirection.NORTH_SOUTH -> VoxelShapes.combine(
+        PlankDirection.NORTH_SOUTH -> BVoxelShapes.combine(
             shape,
-            VoxelShapes.cuboid(1.0/8.0, 15.0 / 16.0, 0.0, 7.0/8.0, 1.0, 1.0),
-            BooleanBiFunction.OR
+            BVoxelShapes.cuboidB(2.5, 15, 0, 5, 1, 16),
+            BVoxelShapes.cuboidB(8.5, 15, 0, 5, 1, 16),
+            function = BooleanBiFunction.OR
         )
-        PlankDirection.WEST_EAST -> VoxelShapes.combine(
+        PlankDirection.WEST_EAST -> BVoxelShapes.combine(
             shape,
-            VoxelShapes.cuboid(0.0, 15.0 / 16.0, 1.0/8.0, 1.0, 1.0, 7.0/8.0),
-            BooleanBiFunction.OR
+            BVoxelShapes.cuboidB(0, 15, 2.5, 16, 1, 5),
+            BVoxelShapes.cuboidB(0, 15, 8.5, 16, 1, 5),
+            function = BooleanBiFunction.OR
         )
     }
 
