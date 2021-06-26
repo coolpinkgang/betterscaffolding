@@ -24,7 +24,7 @@ class ScaffoldMicroBlock(settings: Settings) : Block(settings) {
         NONE,
         NORTH_SOUTH,
         WEST_EAST;
-        override fun asString(): String = name
+        override fun asString(): String = name.lowercase()
     }
 
     companion object {
