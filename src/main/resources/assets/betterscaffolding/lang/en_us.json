@@ -10,5 +10,15 @@
     "error": {
       "notenoughplanks": "You do not have enough Planks to build this."
     }
+  },
+  "text.autoconfig.betterscaffolding": {
+    "title": "Better Scaffolding Config",
+    "option.groupScaffolding": "Scaffolding Block",
+    "option": {
+      "groupScaffolding": {
+        "maxLength": "Max plank length",
+        "minLength": "Min plank length"
+      }
+    }
   }
 }

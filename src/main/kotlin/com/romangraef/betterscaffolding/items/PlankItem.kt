@@ -1,5 +1,6 @@
 package com.romangraef.betterscaffolding.items
 
+import com.romangraef.betterscaffolding.BetterScaffolding
 import com.romangraef.betterscaffolding.blocks.ScaffoldMicroBlock
 import com.romangraef.betterscaffolding.registries.BBlock
 import net.minecraft.entity.player.PlayerEntity
@@ -49,10 +50,10 @@ class PlankItem(settings: Settings) : Item(settings) {
                         (state.block == BBlock.scaffoldMicroBlock &&
                                 state[ScaffoldMicroBlock.PLANKS] == ScaffoldMicroBlock.PlankDirection.NONE)
             }
-            .take(4)
+            .take(BetterScaffolding.config.groupScaffolding.maxLength)
             .toList()
             .dropLastWhile { (_, state) -> state.block != BBlock.scaffoldMicroBlock || !state[lookingDirection.toBlockStateField()].bool }
-        if (toUpdate.isEmpty()) return ActionResult.FAIL
+        if (toUpdate.isEmpty() || toUpdate.size < BetterScaffolding.config.groupScaffolding.minLength) return ActionResult.FAIL
         if (toUpdate.any { (pos, _) ->
                 !world.canPlayerModifyAt(
                     player,

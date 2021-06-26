@@ -26,6 +26,7 @@ repositories {
     maven(url = "https://maven.fabricmc.net/")
     maven(url = "https://maven.terraformersmc.com/releases")
     maven(url = "https://kotlin.bintray.com/kotlinx")
+    maven(url = "https://maven.shedaniel.me/")
     mavenCentral()
 }
 
@@ -38,10 +39,15 @@ dependencies {
     mappings(group = "net.fabricmc", name = "yarn", version = minecraftVersion + "+build.1", classifier = "v2")
 
     modImplementation("net.fabricmc:fabric-loader:0.11.3")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:0.34.9+1.17")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:0.36.0+1.17")
     modImplementation(group = "net.fabricmc", name = "fabric-language-kotlin", version = "1.6.1+kotlin.1.5.10")
 
-    modImplementation("com.terraformersmc:modmenu:2.0.2")
+    modImplementation("com.terraformersmc:modmenu:2.0.2") {
+        exclude(group = "net.fabricmc.fabric-api")
+    }
+    modApi("me.shedaniel.cloth:cloth-config-fabric:5.0.34") {
+        exclude(group = "net.fabricmc.fabric-api")
+    }
 }
 
 tasks.processResources {
