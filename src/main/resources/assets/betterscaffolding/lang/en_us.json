@@ -4,5 +4,10 @@
       "pole": "Pole",
       "forklift": "Forklift"
     }
+  },
+  "betterscaffolding": {
+    "error": {
+      "notenoughplanks": "You do not have enough Planks to build this."
+    }
   }
 }

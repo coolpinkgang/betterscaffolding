@@ -10,6 +10,6 @@ import net.minecraft.util.registry.Registry
 object BBlock : DefaultDelayedRegistry<Block>(Registry.BLOCK, BetterScaffolding.modid) {
     val DEFAULT_SETTINGS = AbstractBlock.Settings.of(Material.STONE)
     val scaffoldMicroBlock by "micro_block" {
-        ScaffoldMicroBlock(DEFAULT_SETTINGS)
+        ScaffoldMicroBlock()
     }
 }
