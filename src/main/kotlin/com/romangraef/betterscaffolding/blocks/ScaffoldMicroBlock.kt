@@ -38,6 +38,7 @@ class ScaffoldMicroBlock() : Block(Settings.copy(Blocks.SCAFFOLDING)) {
     enum class PoleState : StringIdentifiable {
         NONE, POLE, POLE_AND_CONNECTION;
 
+        val bool get() = this != NONE
         override fun asString(): String = name.lowercase()
     }
 

@@ -10,6 +10,14 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import kotlin.math.abs
 
+fun Direction.toBlockStateField() = when (this) {
+    Direction.NORTH -> ScaffoldMicroBlock.POLE_N
+    Direction.SOUTH -> ScaffoldMicroBlock.POLE_S
+    Direction.WEST -> ScaffoldMicroBlock.POLE_W
+    Direction.EAST -> ScaffoldMicroBlock.POLE_E
+    else -> throw IllegalStateException()
+}
+
 class PoleItem(settings: Settings) : Item(settings) {
 
     companion object {
@@ -26,14 +34,6 @@ class PoleItem(settings: Settings) : Item(settings) {
                 }
                 else -> side
             }
-
-        internal fun Direction.toBlockStateField() = when (this) {
-            Direction.NORTH -> ScaffoldMicroBlock.POLE_N
-            Direction.SOUTH -> ScaffoldMicroBlock.POLE_S
-            Direction.WEST -> ScaffoldMicroBlock.POLE_W
-            Direction.EAST -> ScaffoldMicroBlock.POLE_E
-            else -> throw IllegalStateException()
-        }
     }
 
     override fun useOnBlock(context: ItemUsageContext): ActionResult {

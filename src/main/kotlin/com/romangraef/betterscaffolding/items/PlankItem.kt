@@ -38,6 +38,8 @@ class PlankItem(settings: Settings) : Item(settings) {
         val firstPos = context.blockPos ?: return ActionResult.FAIL
         val world = context.world ?: return ActionResult.FAIL
         val stack = context.stack ?: return ActionResult.FAIL
+        val firstState = world.getBlockState(firstPos)
+        if (firstState.isAir || firstState.block != BBlock.scaffoldMicroBlock || !firstState[lookingDirection.opposite.toBlockStateField()].bool) return ActionResult.FAIL
         val toUpdate = generateSequence(firstPos) {
             it.offset(lookingDirection)
         }
@@ -49,8 +51,7 @@ class PlankItem(settings: Settings) : Item(settings) {
             }
             .take(4)
             .toList()
-            .dropLastWhile { (_, state) -> state.block != BBlock.scaffoldMicroBlock }
-
+            .dropLastWhile { (_, state) -> state.block != BBlock.scaffoldMicroBlock || !state[lookingDirection.toBlockStateField()].bool }
         if (toUpdate.isEmpty()) return ActionResult.FAIL
         if (toUpdate.any { (pos, _) ->
                 !world.canPlayerModifyAt(
