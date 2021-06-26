@@ -1,7 +1,9 @@
 package com.romangraef.betterscaffolding.mixins;
 
 import com.mojang.authlib.GameProfile;
+import com.romangraef.betterscaffolding.BetterScaffoldingClient;
 import com.romangraef.betterscaffolding.entities.ForkliftEntity;
+import com.romangraef.betterscaffolding.networking.ServerNetworkingPlayer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.input.Input;
@@ -36,6 +38,10 @@ public abstract class ClientPlayerEntityMixinW extends PlayerEntity {
         if (v instanceof ForkliftEntity) {
             ForkliftEntity e = (ForkliftEntity) v;
             e.setInputs(input.pressingLeft, this.input.pressingRight, this.input.pressingForward, this.input.pressingBack);
+            boolean forkUp = BetterScaffoldingClient.Keybindings.forkliftUp.isPressed();
+            boolean forkDown = BetterScaffoldingClient.Keybindings.forkliftDown.isPressed();
+            if (forkUp || forkDown)
+                ServerNetworkingPlayer.sendForkliftInteraction(forkUp, forkDown);
             riding |= true;
         }
     }
