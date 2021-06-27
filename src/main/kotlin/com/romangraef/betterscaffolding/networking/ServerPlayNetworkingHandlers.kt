@@ -30,7 +30,7 @@ object ServerPlayNetworkingHandlers {
                     MathHelper.clamp(forklift.forkHeight + 0.05F, 0F, 1F)
                 ForkliftInteractions.FORK_DOWN -> forklift.forkHeight =
                     MathHelper.clamp(forklift.forkHeight - 0.05F, 0F, 1F)
-                else -> Unit // TODO
+                ForkliftInteractions.PICKUP_BLOCK -> forklift.pickOrDropBlock()
             }
             Unit
         }

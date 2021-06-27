@@ -50,8 +50,10 @@ class ForkliftRenderer<T : ForkliftEntity>(ctx: EntityRendererFactory.Context) :
         )
         val bs = entity.pickedUpBlock
         if (bs != null && bs.renderType != BlockRenderType.INVISIBLE) {
+            matrices.push()
             matrices.scale(0.8f, 0.8f, 0.8f)
-            matrices.translate(-0.5, 0.4, -2.4)
+            matrices.translate(-0.5, 1.4, -1.4)
+            matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180F))
             MinecraftClient.getInstance().blockRenderManager.renderBlockAsEntity(
                 bs,
                 matrices,
@@ -59,6 +61,7 @@ class ForkliftRenderer<T : ForkliftEntity>(ctx: EntityRendererFactory.Context) :
                 light,
                 OverlayTexture.DEFAULT_UV
             )
+            matrices.pop()
         }
         matrices.pop()
     }

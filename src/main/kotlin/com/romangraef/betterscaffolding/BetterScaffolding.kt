@@ -9,6 +9,8 @@ import me.shedaniel.autoconfig.serializer.GsonConfigSerializer
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
 import net.minecraft.item.ItemStack
+import net.minecraft.text.TranslatableText
+import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import org.slf4j.LoggerFactory
 
@@ -21,6 +23,10 @@ object BetterScaffolding : ModInitializer {
     )
 
     fun id(string: String) = Identifier(modid, string)
+
+    fun error(name: String, vararg args: Any) = TranslatableText("betterscaffolding.error.$name", args).styled {
+        it.withColor(Formatting.DARK_RED)
+    }
 
     val itemGroup = FabricItemGroupBuilder.build(id("general")) { ItemStack(BItems.pole) }
 

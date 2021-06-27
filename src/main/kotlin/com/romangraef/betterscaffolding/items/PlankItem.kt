@@ -6,10 +6,7 @@ import com.romangraef.betterscaffolding.registries.BBlock
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemUsageContext
-import net.minecraft.text.Style
-import net.minecraft.text.TranslatableText
 import net.minecraft.util.ActionResult
-import net.minecraft.util.Formatting
 import net.minecraft.util.math.Direction
 
 class PlankItem(settings: Settings) : Item(settings) {
@@ -62,11 +59,7 @@ class PlankItem(settings: Settings) : Item(settings) {
             }) return ActionResult.FAIL
         if (toUpdate.size > stack.count && !player.isCreative) {
             player.sendMessage(
-                TranslatableText("betterscaffolding.error.notenoughplanks").setStyle(
-                    Style.EMPTY.withColor(
-                        Formatting.DARK_RED
-                    )
-                ), true
+                BetterScaffolding.error("notenoughplanks"), true
             )
             return ActionResult.FAIL
         }

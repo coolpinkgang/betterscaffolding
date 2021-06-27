@@ -1,11 +1,13 @@
 package com.romangraef.betterscaffolding.entities
 
+import com.romangraef.betterscaffolding.BetterScaffolding
 import com.romangraef.betterscaffolding.registries.BItems
 import com.romangraef.betterscaffolding.registries.REntities
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
+import net.minecraft.block.Blocks
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.MovementType
@@ -20,8 +22,10 @@ import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtHelper
 import net.minecraft.network.Packet
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Hand
+import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.util.math.MathHelper
 import net.minecraft.util.math.Vec3d
@@ -88,9 +92,10 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
         return false
     }
 
+    var pickupDelay = 0
     var forkHeight by dataTracker.wrap(FORK_HEIGHT)
 
-    var pickedUpBlockId by dataTracker.wrap(PICKED_UP_BLOCK)
+    private var pickedUpBlockId by dataTracker.wrap(PICKED_UP_BLOCK)
     var pickedUpBlock: BlockState?
         get() = if (pickedUpBlockId < 0) null else Block.getStateFromRawId(pickedUpBlockId)
         set(value) {
@@ -129,6 +134,8 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
     override fun createSpawnPacket(): Packet<*> = EntitySpawnS2CPacket(this)
     override fun tick() {
         super.tick()
+        if (pickupDelay > 0)
+            pickupDelay--
         if (isLogicalSideForUpdatingMovement) {
             if (world.isClient)
                 updateClientMovement()
@@ -156,6 +163,39 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
                 }
                 this.pressingForward -> {
                     move(MovementType.PLAYER, Vec3d.fromPolar(0f, yaw).normalize().multiply(0.1))
+                }
+            }
+        }
+    }
+
+    fun pickOrDropBlock() {
+        if (pickupDelay > 0)
+            return
+        pickupDelay = 10
+        val b = pickedUpBlock
+        val p = primaryPassenger as ServerPlayerEntity
+        val interactPosD =
+            pos.add(Vec3d.fromPolar(0f, yaw).multiply(1.5)).add(0.0, 0.3 + forkHeight * MAX_FORK_HEIGHT, 0.0)
+        val interactPos = BlockPos(interactPosD)
+        if (b != null) {
+            if (world.getBlockState(interactPos).isAir) {
+                world.setBlockState(interactPos, b)
+                world.blockTickScheduler.schedule(interactPos, b.block, 1)
+                pickedUpBlock = null
+            } else
+                p.sendMessage(BetterScaffolding.error("blockalreadypresent"), true)
+        } else {
+            val ns = world.getBlockState(interactPos)
+            when {
+                ns.isAir -> {
+                    p.sendMessage(BetterScaffolding.error("noblockfound"), true)
+                }
+                world.getBlockEntity(interactPos) != null -> {
+                    p.sendMessage(BetterScaffolding.error("invalidblockfound"), true)
+                }
+                else -> {
+                    pickedUpBlock = ns
+                    world.setBlockState(interactPos, Blocks.AIR.defaultState)
                 }
             }
         }

@@ -15,6 +15,8 @@ object BetterScaffoldingClient : ClientModInitializer {
     object Keybindings {
         lateinit var forkliftUp: KeyBinding
         lateinit var forkliftDown: KeyBinding
+        lateinit var forkliftInteract: KeyBinding
+        const val category = "key.betterscaffolding.category"
     }
 
     override fun onInitializeClient() {
@@ -25,7 +27,7 @@ object BetterScaffoldingClient : ClientModInitializer {
                 "key.betterscaffolding.forkliftdown",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_J,
-                "key.betterscaffolding.category"
+                Keybindings.category
             )
         )
         Keybindings.forkliftUp = KeyBindingHelper.registerKeyBinding(
@@ -33,7 +35,15 @@ object BetterScaffoldingClient : ClientModInitializer {
                 "key.betterscaffolding.forkliftup",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_U,
-                "key.betterscaffolding.category"
+                Keybindings.category
+            )
+        )
+        Keybindings.forkliftInteract = KeyBindingHelper.registerKeyBinding(
+            KeyBinding(
+                "key.betterscaffolding.forkliftInteract",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_I,
+                Keybindings.category
             )
         )
     }

@@ -7,12 +7,12 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs
 
 @Environment(EnvType.CLIENT)
 object ServerNetworkingPlayer {
-
     @JvmStatic
-    fun sendForkliftInteraction(forkUp: Boolean, forkDown: Boolean) {
+    fun sendForkliftInteraction(forkUp: Boolean, forkDown: Boolean, pickupBlock: Boolean) {
         val interaction = when {
             forkUp > forkDown -> ForkliftInteractions.FORK_UP
             forkDown > forkUp -> ForkliftInteractions.FORK_DOWN
+            pickupBlock -> ForkliftInteractions.PICKUP_BLOCK
             else -> null
         } ?: return
         ClientPlayNetworking.send(

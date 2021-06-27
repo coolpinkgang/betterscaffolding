@@ -40,8 +40,9 @@ public abstract class ClientPlayerEntityMixinW extends PlayerEntity {
             e.setInputs(input.pressingLeft, this.input.pressingRight, this.input.pressingForward, this.input.pressingBack);
             boolean forkUp = BetterScaffoldingClient.Keybindings.forkliftUp.isPressed();
             boolean forkDown = BetterScaffoldingClient.Keybindings.forkliftDown.isPressed();
-            if (forkUp || forkDown)
-                ServerNetworkingPlayer.sendForkliftInteraction(forkUp, forkDown);
+            boolean interactKey = BetterScaffoldingClient.Keybindings.forkliftInteract.isPressed();
+            if (forkUp || forkDown || interactKey)
+                ServerNetworkingPlayer.sendForkliftInteraction(forkUp, forkDown, interactKey);
             riding |= true;
         }
     }

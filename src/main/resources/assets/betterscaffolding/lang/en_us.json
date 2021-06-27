@@ -8,7 +8,10 @@
   },
   "betterscaffolding": {
     "error": {
-      "notenoughplanks": "You do not have enough Planks to build this."
+      "notenoughplanks": "You do not have enough Planks to build this.",
+      "blockalreadypresent": "There is a block in the way.",
+      "noblockfound": "There is no block to pick up.",
+      "invalidblockfound": "You cannot pick up this block."
     }
   },
   "text.autoconfig.betterscaffolding": {
