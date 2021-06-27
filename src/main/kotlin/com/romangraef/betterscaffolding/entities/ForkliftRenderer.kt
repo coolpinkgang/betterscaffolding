@@ -1,6 +1,8 @@
 package com.romangraef.betterscaffolding.entities
 
 import com.romangraef.betterscaffolding.BetterScaffolding
+import net.minecraft.block.BlockRenderType
+import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.OverlayTexture
 import net.minecraft.client.render.VertexConsumerProvider
 import net.minecraft.client.render.entity.EntityRenderer
@@ -22,9 +24,9 @@ class ForkliftRenderer<T : ForkliftEntity>(ctx: EntityRendererFactory.Context) :
     ) {
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light)
         matrices.push()
-        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180F - yaw))
-        matrices.translate(0.0, 1.5, 0.2)
-        matrices.scale(1F, -1F, 1F)
+        matrices.translate(0.0, 1.5, 0.0)
+        matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180F))
+        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(yaw))
         model.render(
             matrices,
             vertexConsumers.getBuffer(model.getLayer(getTexture(entity))),
@@ -46,6 +48,18 @@ class ForkliftRenderer<T : ForkliftEntity>(ctx: EntityRendererFactory.Context) :
             1f,
             1f
         )
+        val bs = entity.pickedUpBlock
+        if (bs != null && bs.renderType != BlockRenderType.INVISIBLE) {
+            matrices.scale(0.8f, 0.8f, 0.8f)
+            matrices.translate(-0.5, 0.4, -2.4)
+            MinecraftClient.getInstance().blockRenderManager.renderBlockAsEntity(
+                bs,
+                matrices,
+                vertexConsumers,
+                light,
+                OverlayTexture.DEFAULT_UV
+            )
+        }
         matrices.pop()
     }
 }

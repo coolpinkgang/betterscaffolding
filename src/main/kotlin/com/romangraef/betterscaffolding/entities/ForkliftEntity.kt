@@ -4,6 +4,8 @@ import com.romangraef.betterscaffolding.registries.BItems
 import com.romangraef.betterscaffolding.registries.REntities
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
+import net.minecraft.block.Block
+import net.minecraft.block.BlockState
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.MovementType
@@ -15,6 +17,7 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.vehicle.BoatEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtHelper
 import net.minecraft.network.Packet
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
 import net.minecraft.util.ActionResult
@@ -42,6 +45,7 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
     companion object {
         const val MAX_FORK_HEIGHT = 1.4
         val FORK_HEIGHT = DataTracker.registerData(ForkliftEntity::class.java, TrackedDataHandlerRegistry.FLOAT)
+        val PICKED_UP_BLOCK = DataTracker.registerData(ForkliftEntity::class.java, TrackedDataHandlerRegistry.INTEGER)
     }
 
     override fun collidesWith(other: Entity): Boolean {
@@ -86,9 +90,22 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
 
     var forkHeight by dataTracker.wrap(FORK_HEIGHT)
 
+    var pickedUpBlockId by dataTracker.wrap(PICKED_UP_BLOCK)
+    var pickedUpBlock: BlockState?
+        get() = if (pickedUpBlockId < 0) null else Block.getStateFromRawId(pickedUpBlockId)
+        set(value) {
+            pickedUpBlockId =
+                if (value != null)
+                    Block.getRawIdFromState(value)
+                else
+                    -1
+        }
+
+
     override fun getMountedHeightOffset(): Double = 0.0
     override fun initDataTracker() {
         dataTracker.startTracking(FORK_HEIGHT, 0f)
+        dataTracker.startTracking(PICKED_UP_BLOCK, -1)
     }
 
 
@@ -96,10 +113,17 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
         nbt ?: return
         if (nbt.contains("forkHeight"))
             forkHeight = MathHelper.clamp(nbt.getFloat("forkHeight"), 0f, 1f)
+        pickedUpBlock =
+            if (nbt.contains("pickedUpBlock"))
+                NbtHelper.toBlockState(nbt.getCompound("pickedUpBlock"))
+            else
+                null
     }
 
     override fun writeCustomDataToNbt(nbt: NbtCompound) {
         nbt.putFloat("forkHeight", forkHeight)
+        if (pickedUpBlock != null)
+            nbt.put("pickedUpBlock", NbtHelper.fromBlockState(pickedUpBlock))
     }
 
     override fun createSpawnPacket(): Packet<*> = EntitySpawnS2CPacket(this)
