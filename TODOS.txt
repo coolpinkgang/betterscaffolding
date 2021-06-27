@@ -1,0 +1,18 @@
+Forklift:
+ - Make Blocks pickupable
+ - Make blockentities (with either whitelist or blacklist) pickupable
+ - Require forklift certification (maybe config for this)
+ - Sounds while driving / moving, maybe something royalty free, or self recorded.
+
+Scaffolding:
+ - Texturing (pls jannis, do this, i(nea) only know how to render entities)
+
+Mortar/Cement mixer:
+ - Actually add it
+ - PARTICLES!!
+ - Maybe for concrete, maybe just decoration.
+
+General:
+ - Crafting
+
+
