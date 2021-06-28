@@ -18,11 +18,14 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.vehicle.BoatEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.loot.context.LootContext
+import net.minecraft.loot.context.LootContextParameters
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtHelper
 import net.minecraft.network.Packet
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Hand
 import net.minecraft.util.math.BlockPos
@@ -41,6 +44,7 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
     private var clientX: Double = 0.0
     private var clientY: Double = 0.0
     private var clientZ: Double = 0.0
+    private var clientYaw: Double = 0.0
     private var clientInterpolationSteps: Int = -1
     private var pressingRight = false
     private var pressingBack = false
@@ -92,9 +96,13 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
             removeAllPassengers()
             remove(RemovalReason.KILLED)
             if (world.gameRules.getBoolean(GameRules.DO_ENTITY_DROPS) && !source.isSourceCreativePlayer)
-                dropStack(ItemStack(BItems.forklift))
+                dropItems()
         }
         return false
+    }
+
+    private fun dropItems() {
+        dropStack(ItemStack(BItems.forklift))
     }
 
     var pickupDelay = 0
@@ -222,8 +230,9 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
             val nx = x + (clientX - x) / clientInterpolationSteps
             val ny = y + (clientY - y) / clientInterpolationSteps
             val nz = z + (clientZ - z) / clientInterpolationSteps
+            val nyaw = yaw + (clientYaw - yaw) / clientInterpolationSteps
             setPosition(nx, ny, nz)
-            setRotation(yaw, pitch)
+            setRotation(nyaw.toFloat(), pitch)
         }
     }
 
@@ -239,6 +248,7 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
         clientX = x
         clientY = y
         clientZ = z
+        clientYaw = yaw
         clientInterpolationSteps = interpolationSteps + 2
     }
 
