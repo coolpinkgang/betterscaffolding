@@ -1,6 +1,6 @@
 package com.romangraef.betterscaffolding.items
 
-import com.romangraef.betterscaffolding.blocks.ScaffoldMicroBlock
+import com.romangraef.betterscaffolding.blocks.Scaffolding
 import com.romangraef.betterscaffolding.registries.BBlock
 import net.minecraft.block.BlockState
 import net.minecraft.item.Item
@@ -10,11 +10,11 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import kotlin.math.abs
 
-fun Direction.toBlockStateField() = when (this) {
-    Direction.NORTH -> ScaffoldMicroBlock.POLE_N
-    Direction.SOUTH -> ScaffoldMicroBlock.POLE_S
-    Direction.WEST -> ScaffoldMicroBlock.POLE_W
-    Direction.EAST -> ScaffoldMicroBlock.POLE_E
+fun Direction.toPolePosition() = when (this) {
+    Direction.NORTH -> Scaffolding.PolePosition.NORTH
+    Direction.SOUTH -> Scaffolding.PolePosition.SOUTH
+    Direction.WEST -> Scaffolding.PolePosition.WEST
+    Direction.EAST -> Scaffolding.PolePosition.EAST
     else -> throw IllegalStateException()
 }
 
@@ -46,14 +46,14 @@ class PoleItem(settings: Settings) : Item(settings) {
         val blockUnderneath: BlockState = context.world.getBlockState(blockUnderneathPos)
         if (blockUnderneath.isAir) return ActionResult.FAIL
         if (blockUnderneath.block == BBlock.scaffoldMicroBlock) {
-            if (blockUnderneath[context.placeDirection.toBlockStateField()] != ScaffoldMicroBlock.PoleState.NONE
-                || blockUnderneath[ScaffoldMicroBlock.PLANKS] != ScaffoldMicroBlock.PlankDirection.NONE
+            if (blockUnderneath[context.placeDirection.toPolePosition().toProperty()] != Scaffolding.PoleState.NONE
+                || blockUnderneath[Scaffolding.States.PLANK] != Scaffolding.PlankState.NONE
             )
                 return ActionResult.FAIL
         }
         if (!context.world.isClient) {
             BBlock.scaffoldMicroBlock.setMicroblock(context.world, placePos) {
-                it.with(context.placeDirection.toBlockStateField(), ScaffoldMicroBlock.PoleState.POLE)
+                it.with(context.placeDirection.toPolePosition().toProperty(), Scaffolding.PoleState.BASE)
             }
             if (context.player?.isCreative != true)
                 context.stack.count--
