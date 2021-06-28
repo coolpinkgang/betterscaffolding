@@ -34,6 +34,7 @@ import net.minecraft.world.World
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
+
 class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityType, world) {
     constructor(world: World) : this(REntities.FORKLIFT, world)
 
@@ -69,6 +70,10 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
             return ActionResult.PASS
         if (world.isClient)
             return ActionResult.SUCCESS
+        if (!BItems.license.isPlayerCertified(player)) {
+            player.sendMessage(BetterScaffolding.error("license.missing"), true)
+            return ActionResult.FAIL
+        }
         return if (player.startRiding(this)) ActionResult.CONSUME else ActionResult.PASS
     }
 

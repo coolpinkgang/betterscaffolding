@@ -5,6 +5,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder.literal
 import com.mojang.brigadier.context.CommandContext
 import com.romangraef.betterscaffolding.BetterScaffolding
 import com.romangraef.betterscaffolding.items.ForkliftCertification
+import com.romangraef.betterscaffolding.registries.BItems
 import net.minecraft.command.argument.EntityArgumentType
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.ServerCommandSource
@@ -40,7 +41,7 @@ object ForkliftCommand {
             ctx.source.sendError(BetterScaffolding.error("notcertifiable"))
             return 0
         }
-        val itemStack = ForkliftCertification.createLicense(forWhom ?: source)
+        val itemStack = BItems.license.createLicense(forWhom ?: source)
         source.giveItemStack(itemStack)
         return 1
     }

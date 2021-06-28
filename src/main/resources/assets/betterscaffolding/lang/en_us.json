@@ -7,6 +7,7 @@
   "betterscaffolding.info.license.obtained_date": "Obtained %s",
   "betterscaffolding.info.license.player_name": "Valid for player %s",
   "betterscaffolding.error.license.obtain_via": "Obtain from a Villager or with /forklift certify",
+  "betterscaffolding.error.license.missing": "You are missing a forklift certification",
   "betterscaffolding.error.onlyplayersmayexecute": "Only players may execute this command",
   "betterscaffolding.error.notenoughplanks": "You do not have enough Planks to build this.",
   "betterscaffolding.error.blockalreadypresent": "There is a block in the way.",
