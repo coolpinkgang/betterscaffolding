@@ -50,9 +50,10 @@ class ScaffoldMicroBlockModel : UnbakedModel {
     )
 
     override fun getTextureDependencies(
-        unbakedModelGetter: Function<Identifier, UnbakedModel>?,
-        unresolvedTextureReferences: MutableSet<Pair<String, String>>?
-    ): MutableCollection<SpriteIdentifier> = mutableListOf()
+        unbakedModelGetter: Function<Identifier, UnbakedModel>,
+        unresolvedTextureReferences: MutableSet<Pair<String, String>>
+    ): MutableCollection<SpriteIdentifier> = modelDependencies.map { unbakedModelGetter.apply(it) }
+        .flatMap { it.getTextureDependencies(unbakedModelGetter, unresolvedTextureReferences) }.toMutableList()
 
     override fun bake(
         loader: ModelLoader,
@@ -80,8 +81,14 @@ class ScaffoldMicroBlockModel : UnbakedModel {
                 ImmutablePair.of(Predicate { ScaffoldMicroBlock.hasConnectionSouth(it) }, supportConnectionS),
                 ImmutablePair.of(Predicate { ScaffoldMicroBlock.hasConnectionWest(it) }, supportConnectionW),
                 ImmutablePair.of(Predicate { ScaffoldMicroBlock.hasConnectionEast(it) }, supportConnectionE),
-                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.PLANKS] == ScaffoldMicroBlock.PlankDirection.NORTH_SOUTH }, planksNS),
-                ImmutablePair.of(Predicate { it[ScaffoldMicroBlock.PLANKS] == ScaffoldMicroBlock.PlankDirection.WEST_EAST }, planksWE),
+                ImmutablePair.of(
+                    Predicate { it[ScaffoldMicroBlock.PLANKS] == ScaffoldMicroBlock.PlankDirection.NORTH_SOUTH },
+                    planksNS
+                ),
+                ImmutablePair.of(
+                    Predicate { it[ScaffoldMicroBlock.PLANKS] == ScaffoldMicroBlock.PlankDirection.WEST_EAST },
+                    planksWE
+                ),
             )
         )
     }
