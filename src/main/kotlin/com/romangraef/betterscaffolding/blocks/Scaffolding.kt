@@ -112,7 +112,7 @@ object Scaffolding {
             blockState[polePosition.toProperty()] != PoleState.NONE
 
         fun hasLeg(legPosition: LegPosition, blockState: BlockState) =
-            legPosition.toPolePositions().toList().all { hasPole(it, blockState) }
+            legPosition.toPolePositions().toList().any { hasPole(it, blockState) }
 
         fun hasPoles(blockState: BlockState) =
             PolePosition.values().any { hasPole(it, blockState) }
@@ -132,6 +132,8 @@ object Scaffolding {
         }
 
         fun hasPlanks(blockState: BlockState) = blockState[States.PLANK] != PlankState.NONE
+
+        fun hasPlank(blockState: BlockState, plankState: PlankState) = blockState[States.PLANK] == plankState
 
         fun isValidState(world: WorldAccess, blockPos: BlockPos, blockState: BlockState): Boolean {
             if (hasPoles(blockState))
@@ -332,13 +334,17 @@ object Scaffolding {
             LegPosition.values().map<LegPosition, ImmutablePair<Predicate<BlockState>, BakedModel>> { pos ->
                 ImmutablePair(
                     Predicate { Block.hasLeg(pos, it) },
-                    loader.getOrLoadModel(getLegModel(pos)).bake(loader, textureGetter, rotationContainer, modelId)
+                    loader.bake(getLegModel(pos), rotationContainer)
                 )
             } + PolePosition.values().map<PolePosition, ImmutablePair<Predicate<BlockState>, BakedModel>> { pos ->
                 ImmutablePair(
                     Predicate { Block.hasConnection(pos, it) },
-                    loader.getOrLoadModel(getConnectionModel(pos))
-                        .bake(loader, textureGetter, rotationContainer, modelId)
+                    loader.bake(getConnectionModel(pos), rotationContainer)
+                )
+            } + PlankState.values().filter { it != PlankState.NONE }.map<PlankState, ImmutablePair<Predicate<BlockState>, BakedModel>> { state ->
+                ImmutablePair(
+                    Predicate { Block.hasPlank(it, state) },
+                    loader.bake(getPlankModel(state), rotationContainer)
                 )
             }
         )
