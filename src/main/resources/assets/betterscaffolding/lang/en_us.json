@@ -6,6 +6,7 @@
   "itemGroup.betterscaffolding.general": "Better Scaffolding",
   "betterscaffolding.info.license.obtained_date": "Obtained %s",
   "betterscaffolding.info.license.player_name": "Valid for player %s",
+  "betterscaffolding.info.license.later_attribution": "Will be attributed to you upon purchase.",
   "betterscaffolding.error.license.obtain_via": "Obtain from a Villager or with /forklift certify",
   "betterscaffolding.error.license.missing": "You are missing a forklift certification",
   "betterscaffolding.error.onlyplayersmayexecute": "Only players may execute this command",

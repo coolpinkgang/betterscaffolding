@@ -5,6 +5,7 @@ import com.romangraef.betterscaffolding.networking.ServerPlayNetworkingHandlers
 import com.romangraef.betterscaffolding.registries.BBlock
 import com.romangraef.betterscaffolding.registries.BItems
 import com.romangraef.betterscaffolding.registries.REntities
+import com.romangraef.betterscaffolding.registries.VillagerTrades
 import me.shedaniel.autoconfig.AutoConfig
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer
 import net.fabricmc.api.ModInitializer
@@ -40,6 +41,7 @@ object BetterScaffolding : ModInitializer {
         ServerPlayNetworkingHandlers.registerAll()
         AutoConfig.register(BetterScaffoldingConfig::class.java, ::GsonConfigSerializer)
         CommandRegistrationCallback.EVENT.register(ForkliftCommand::register)
+        VillagerTrades.registerTrades()
     }
 }
 
