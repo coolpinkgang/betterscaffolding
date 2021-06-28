@@ -141,6 +141,11 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
         super.tick()
         if (pickupDelay > 0)
             pickupDelay--
+        val pp = primaryPassenger as? ServerPlayerEntity
+        if (!world.isClient && pp != null && !BItems.license.isPlayerCertified(pp)) {
+            pp.sendMessage(BetterScaffolding.error("license.missing"), true)
+            removeAllPassengers()
+        }
         if (isLogicalSideForUpdatingMovement) {
             if (world.isClient)
                 updateClientMovement()
