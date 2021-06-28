@@ -54,7 +54,4 @@ tasks.processResources {
     filesMatching("fabric.mod.json") {
         expand(project.properties)
     }
-    filesMatching("**/lang/*.json") {
-        flattenJson(this)
-    }
 }

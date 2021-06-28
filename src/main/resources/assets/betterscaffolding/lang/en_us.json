@@ -1,27 +1,23 @@
 {
-  "item": {
-    "betterscaffolding": {
-      "pole": "Pole",
-      "forklift": "Forklift",
-      "plank": "Plank"
-    }
-  },
-  "betterscaffolding": {
-    "error": {
-      "notenoughplanks": "You do not have enough Planks to build this.",
-      "blockalreadypresent": "There is a block in the way.",
-      "noblockfound": "There is no block to pick up.",
-      "invalidblockfound": "You cannot pick up this block."
-    }
-  },
-  "text.autoconfig.betterscaffolding": {
-    "title": "Better Scaffolding Config",
-    "option.groupScaffolding": "Scaffolding Block",
-    "option": {
-      "groupScaffolding": {
-        "maxLength": "Max plank length",
-        "minLength": "Min plank length"
-      }
-    }
-  }
+  "item.betterscaffolding.pole": "Pole",
+  "item.betterscaffolding.forklift": "Forklift",
+  "item.betterscaffolding.plank": "Plank",
+  "item.betterscaffolding.license": "Forklift Certification",
+  "itemGroup.betterscaffolding.general": "Better Scaffolding",
+  "betterscaffolding.info.license.obtained_date": "Obtained %s",
+  "betterscaffolding.info.license.player_name": "Valid for player %s",
+  "betterscaffolding.error.license.obtain_via": "Obtain from a Villager or with /forklift certify",
+  "betterscaffolding.error.onlyplayersmayexecute": "Only players may execute this command",
+  "betterscaffolding.error.notenoughplanks": "You do not have enough Planks to build this.",
+  "betterscaffolding.error.blockalreadypresent": "There is a block in the way.",
+  "betterscaffolding.error.noblockfound": "There is no block to pick up.",
+  "betterscaffolding.error.invalidblockfound": "You cannot pick up this block.",
+  "text.autoconfig.betterscaffolding.title": "Better Scaffolding Config",
+  "text.autoconfig.betterscaffolding.option.groupScaffolding": "Scaffolding Block",
+  "text.autoconfig.betterscaffolding.option.groupScaffolding.maxLength": "Max plank length",
+  "text.autoconfig.betterscaffolding.option.groupScaffolding.minLength": "Min plank length",
+  "key.betterscaffolding.category": "Better Scaffolding: Forklift Controls",
+  "key.betterscaffolding.forkliftInteract": "Pickup / Drop Block",
+  "key.betterscaffolding.forkliftdown": "Lower Prongs",
+  "key.betterscaffolding.forkliftup": "Raise Prongs"
 }

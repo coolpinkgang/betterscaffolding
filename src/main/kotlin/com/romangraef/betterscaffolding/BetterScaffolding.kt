@@ -1,5 +1,6 @@
 package com.romangraef.betterscaffolding
 
+import com.romangraef.betterscaffolding.commands.ForkliftCommand
 import com.romangraef.betterscaffolding.networking.ServerPlayNetworkingHandlers
 import com.romangraef.betterscaffolding.registries.BBlock
 import com.romangraef.betterscaffolding.registries.BItems
@@ -8,6 +9,7 @@ import me.shedaniel.autoconfig.AutoConfig
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
 import net.minecraft.item.ItemStack
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.Formatting
@@ -37,6 +39,7 @@ object BetterScaffolding : ModInitializer {
         registries.forEach { it.registerAll() }
         ServerPlayNetworkingHandlers.registerAll()
         AutoConfig.register(BetterScaffoldingConfig::class.java, ::GsonConfigSerializer)
+        CommandRegistrationCallback.EVENT.register(ForkliftCommand::register)
     }
 }
 
