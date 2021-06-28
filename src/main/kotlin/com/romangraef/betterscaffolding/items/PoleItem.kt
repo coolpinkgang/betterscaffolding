@@ -32,7 +32,7 @@ class PoleItem(settings: Settings) : Item(settings) {
                         if (z < 0) Direction.NORTH else Direction.SOUTH
                     }
                 }
-                else -> side
+                else -> side.opposite
             }
     }
 
@@ -45,12 +45,11 @@ class PoleItem(settings: Settings) : Item(settings) {
         val blockUnderneathPos: BlockPos = placePos.offset(Direction.DOWN)
         val blockUnderneath: BlockState = context.world.getBlockState(blockUnderneathPos)
         if (blockUnderneath.isAir) return ActionResult.FAIL
-        if (blockUnderneath.block == BBlock.scaffoldMicroBlock) {
-            if (blockUnderneath[context.placeDirection.toPolePosition().toProperty()] != Scaffolding.PoleState.NONE
-                || blockUnderneath[Scaffolding.States.PLANK] != Scaffolding.PlankState.NONE
+        if (blockUnderneath.block == BBlock.scaffoldMicroBlock)
+            if (!(BBlock.scaffoldMicroBlock.hasPole(context.placeDirection.toPolePosition(), blockUnderneath) ||
+                        BBlock.scaffoldMicroBlock.hasPlanks(blockUnderneath))
             )
                 return ActionResult.FAIL
-        }
         if (!context.world.isClient) {
             BBlock.scaffoldMicroBlock.setMicroblock(context.world, placePos) {
                 it.with(context.placeDirection.toPolePosition().toProperty(), Scaffolding.PoleState.BASE)

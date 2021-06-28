@@ -124,7 +124,7 @@ object Scaffolding {
             val underneath = world.getBlockState(blockPos.offset(Direction.DOWN))
             if (underneath.isAir)
                 return false
-            if(underneath.block == this)
+            if (underneath.block == this)
                 return PolePosition.values().all {
                     hasPole(it, blockState) <= hasPole(it, underneath)
                 }
@@ -146,8 +146,13 @@ object Scaffolding {
         private fun updateSingularPole(
             prop: EnumProperty<PoleState>,
             bs: BlockState,
-            isTopOrPlanks: Boolean
+            top: BlockState
         ): BlockState {
+            val isTop = if (top.block == BBlock.scaffoldMicroBlock)
+                top[prop] == PoleState.NONE
+            else
+                true
+            val isTopOrPlanks = hasPlanks(bs) || isTop
             return bs.with(
                 prop,
                 if (bs[prop] != PoleState.NONE)
@@ -160,17 +165,17 @@ object Scaffolding {
 
         fun setMicroblock(world: WorldAccess, pos: BlockPos, updater: (BlockState) -> BlockState) {
             var bs = world.getBlockState(pos)
+            val oldBs = bs
             if (bs == null || bs.isAir) bs = this.defaultState
             if (bs.block != this) throw IllegalStateException("Invalid initial block state during microblock update: $bs")
             bs = updater(bs)
             if (bs.block != this) throw IllegalStateException("Invalid updated block state during microblock update: $bs")
-            val isTop =
-                world.getBlockState(pos.offset(Direction.UP))?.let { it.block != BBlock.scaffoldMicroBlock } ?: true
-            val isTopOrPlanks = isTop || bs[States.PLANK] != PlankState.NONE
-            bs = updateSingularPole(States.POLE_N, bs, isTopOrPlanks)
-            bs = updateSingularPole(States.POLE_W, bs, isTopOrPlanks)
-            bs = updateSingularPole(States.POLE_S, bs, isTopOrPlanks)
-            bs = updateSingularPole(States.POLE_E, bs, isTopOrPlanks)
+            val top = world.getBlockState(pos.offset(Direction.UP))
+            bs = updateSingularPole(States.POLE_N, bs, top)
+            bs = updateSingularPole(States.POLE_W, bs, top)
+            bs = updateSingularPole(States.POLE_S, bs, top)
+            bs = updateSingularPole(States.POLE_E, bs, top)
+            if (oldBs == bs) return
             world.setBlockState(pos, bs, NOTIFY_ALL or SKIP_LIGHTING_UPDATES)
             world.blockTickScheduler.schedule(pos, this, 1)
         }
@@ -181,6 +186,7 @@ object Scaffolding {
 
         override fun scheduledTick(state: BlockState, world: ServerWorld, pos: BlockPos, random: Random) {
             if (!isValidState(world, pos, state)) world.breakBlock(pos, true)
+            else setMicroblock(world, pos) { it }
         }
 
         override fun getStateForNeighborUpdate(
@@ -191,8 +197,7 @@ object Scaffolding {
             pos: BlockPos,
             neighborPos: BlockPos
         ): BlockState {
-            if (!isValidState(world, pos, state))
-                world.blockTickScheduler.schedule(pos, this, 1)
+            world.blockTickScheduler.schedule(pos, this, 1)
             return state
         }
 
@@ -341,12 +346,13 @@ object Scaffolding {
                     Predicate { Block.hasConnection(pos, it) },
                     loader.bake(getConnectionModel(pos), rotationContainer)
                 )
-            } + PlankState.values().filter { it != PlankState.NONE }.map<PlankState, ImmutablePair<Predicate<BlockState>, BakedModel>> { state ->
-                ImmutablePair(
-                    Predicate { Block.hasPlank(it, state) },
-                    loader.bake(getPlankModel(state), rotationContainer)
-                )
-            }
+            } + PlankState.values().filter { it != PlankState.NONE }
+                .map<PlankState, ImmutablePair<Predicate<BlockState>, BakedModel>> { state ->
+                    ImmutablePair(
+                        Predicate { Block.hasPlank(it, state) },
+                        loader.bake(getPlankModel(state), rotationContainer)
+                    )
+                }
         )
 
     }
