@@ -44,7 +44,7 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
     private var clientX: Double = 0.0
     private var clientY: Double = 0.0
     private var clientZ: Double = 0.0
-    private var clientYaw: Double = 0.0
+    private var clientYaw: Float = 0.0F
     private var clientInterpolationSteps: Int = -1
     private var pressingRight = false
     private var pressingBack = false
