@@ -135,37 +135,66 @@ object Scaffolding {
         fun hasConnection(polePosition: PolePosition, state: BlockState) =
             state[polePosition.toProperty()] == PoleState.HEAD
 
-        fun hasValidPolePosition(world: WorldAccess, blockPos: BlockPos, blockState: BlockState): Boolean {
+        fun checkPolePositionOrUpdate(
+            world: WorldAccess,
+            blockPos: BlockPos,
+            blockState: BlockState,
+        ): (BlockState) -> BlockState {
             val underneath = world.getBlockState(blockPos.offset(Direction.DOWN))
             if (underneath.isAir)
-                return false
-            if (underneath.block == this)
-                return PolePosition.values().all {
-                    hasPole(it, blockState) <= hasPole(it, underneath)
+                return {
+                    it.with(States.POLE_N, PoleState.NONE)
+                        .with(States.POLE_S, PoleState.NONE)
+                        .with(States.POLE_W, PoleState.NONE)
+                        .with(States.POLE_E, PoleState.NONE)
                 }
-            return true
+            if (underneath.block == this) {
+                var result: (BlockState) -> BlockState = { it }
+                PolePosition.values().forEach { pos ->
+                    if (hasPole(pos, blockState) > hasPole(pos, underneath))
+                        result = { it.with(pos.toProperty(), PoleState.NONE) }
+                }
+                return result
+            }
+            return { it }
         }
     
-        fun hasValidPlankPosition(world: WorldAccess, blockPos: BlockPos, blockState: BlockState): Boolean {
-            val sides = blockState[States.PLANK].toPolePositions()?.toList() ?: return true
-            return sides.all {
+        fun checkPlankPositionOrUpdate(
+            world: WorldAccess,
+            blockPos: BlockPos,
+            blockState: BlockState
+        ): (BlockState) -> BlockState {
+            val sides = blockState[States.PLANK].toPolePositions()?.toList() ?: return { it }
+            sides.forEach {
                 val side = world.getBlockState(blockPos.offset(it.toDirection()))
-                if (side.block != this) return@all false
-                if (side[States.PLANK] == blockState[States.PLANK]) return@all true
-                return@all false
+                if (side.block != this) return { it.with(States.PLANK, PlankState.NONE) }
+                if (side[States.PLANK] != blockState[States.PLANK])
+                    return { it.with(States.PLANK, PlankState.NONE) }
             }
+            return { it }
         }
 
         fun hasPlanks(blockState: BlockState) = blockState[States.PLANK] != PlankState.NONE
 
         fun hasPlank(blockState: BlockState, plankState: PlankState) = blockState[States.PLANK] == plankState
 
-        fun isValidState(world: WorldAccess, blockPos: BlockPos, blockState: BlockState): Boolean {
-            if (hasPoles(blockState))
-                return hasValidPolePosition(world, blockPos, blockState)
-            if (hasPlanks(blockState))
-                return hasValidPlankPosition(world, blockPos, blockState)
-            return false
+        fun checkStateOrUpdate(
+            world: WorldAccess,
+            blockPos: BlockPos,
+            blockState: BlockState
+        ): ((BlockState) -> BlockState)? {
+            var result: (BlockState) -> BlockState = { it }
+            var i = 0
+            if (hasPoles(blockState)) {
+                i++
+                result = { checkPolePositionOrUpdate(world, blockPos, blockState)(result(it)) }
+            }
+            if (hasPlanks(blockState)){
+                i++
+                result = { checkPlankPositionOrUpdate(world, blockPos, blockState)(result(it)) }
+            }
+            if (i == 0) return null
+            return result
         }
     
         private fun updateSingularPole(
@@ -210,8 +239,8 @@ object Scaffolding {
         }
 
         override fun scheduledTick(state: BlockState, world: ServerWorld, pos: BlockPos, random: Random) {
-            if (!isValidState(world, pos, state)) world.breakBlock(pos, true)
-            else setMicroblock(world, pos) { it }
+            val updater = checkStateOrUpdate(world, pos, state) ?: return run { world.breakBlock(pos, true) }
+            setMicroblock(world, pos) { updater(it) }
         }
 
         override fun getStateForNeighborUpdate(
