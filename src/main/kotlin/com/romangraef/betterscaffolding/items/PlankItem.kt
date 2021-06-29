@@ -45,11 +45,13 @@ class PlankItem(settings: Settings) : Item(settings) {
             return false
         }
         if (!hasValidFirstPos()) return ActionResult.FAIL
+        var first = true
         val toUpdate = generateSequence(firstPos) {
             it.offset(lookingDirection)
         }
             .map { it to world.getBlockState(it) }
             .takeWhile { (_, state) ->
+                if (first) { first = false; return@takeWhile true }
                 if (state.isAir) return@takeWhile true
                 if (state.block != Scaffolding.Block) return@takeWhile false
                 if (Scaffolding.Block.hasPole(lookingDirection.toPolePosition(), state)) return@takeWhile true
