@@ -12,6 +12,7 @@ import net.minecraft.client.render.model.*
 import net.minecraft.client.texture.Sprite
 import net.minecraft.client.util.ModelIdentifier
 import net.minecraft.client.util.SpriteIdentifier
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.state.StateManager
@@ -23,6 +24,7 @@ import net.minecraft.util.math.Direction
 import net.minecraft.util.shape.VoxelShape
 import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.BlockView
+import net.minecraft.world.World
 import net.minecraft.world.WorldAccess
 import org.apache.commons.lang3.tuple.ImmutablePair
 import java.util.*
@@ -50,6 +52,14 @@ object Scaffolding {
             WEST -> LegPosition.NORTH_WEST to LegPosition.SOUTH_WEST
             EAST -> LegPosition.NORTH_WEST to LegPosition.SOUTH_EAST
         }
+        
+        fun toDirection(): Direction = when (this) {
+            NORTH -> Direction.NORTH
+            SOUTH -> Direction.SOUTH
+            WEST  -> Direction.WEST
+            EAST  -> Direction.EAST
+        }
+        
     }
 
     enum class LegPosition(val offsetX: Double, val offsetZ: Double) {
@@ -79,6 +89,11 @@ object Scaffolding {
         WEST_EAST(0, 2.5, 0, 8.5, 16, 5);
 
         override fun asString(): String = name.lowercase()
+        fun toPolePositions(): Pair<PolePosition, PolePosition>? = when (this) {
+            NONE        -> null
+            NORTH_SOUTH -> PolePosition.NORTH to PolePosition.SOUTH
+            WEST_EAST   -> PolePosition.WEST to PolePosition.EAST
+        }
     }
 
     enum class PoleState : StringIdentifiable {
@@ -120,7 +135,7 @@ object Scaffolding {
         fun hasConnection(polePosition: PolePosition, state: BlockState) =
             state[polePosition.toProperty()] == PoleState.HEAD
 
-        fun hasValidPosition(world: WorldAccess, blockPos: BlockPos, blockState: BlockState): Boolean {
+        fun hasValidPolePosition(world: WorldAccess, blockPos: BlockPos, blockState: BlockState): Boolean {
             val underneath = world.getBlockState(blockPos.offset(Direction.DOWN))
             if (underneath.isAir)
                 return false
@@ -130,6 +145,11 @@ object Scaffolding {
                 }
             return true
         }
+    
+        fun hasValidPlankPosition(world: WorldAccess, blockPos: BlockPos, blockState: BlockState): Boolean {
+            val sides = blockState[States.PLANK].toPolePositions()?.toList() ?: return true
+            return sides.all { world.getBlockState(blockPos.offset(it.toDirection())) == blockState[States.PLANK] }
+        }
 
         fun hasPlanks(blockState: BlockState) = blockState[States.PLANK] != PlankState.NONE
 
@@ -137,12 +157,12 @@ object Scaffolding {
 
         fun isValidState(world: WorldAccess, blockPos: BlockPos, blockState: BlockState): Boolean {
             if (hasPoles(blockState))
-                return hasValidPosition(world, blockPos, blockState)
+                return hasValidPolePosition(world, blockPos, blockState)
             if (hasPlanks(blockState))
-                return true
+                return hasValidPlankPosition(world, blockPos, blockState)
             return false
         }
-
+    
         private fun updateSingularPole(
             prop: EnumProperty<PoleState>,
             bs: BlockState,
@@ -271,7 +291,11 @@ object Scaffolding {
 
         override fun getPickStack(world: BlockView, pos: BlockPos, state: BlockState): ItemStack =
             ItemStack(BItems.pole, 1)
-
+    
+        override fun onBreak(world: World?, pos: BlockPos?, state: BlockState?, player: PlayerEntity?) {
+            super.onBreak(world, pos, state, player) //TODO: do this but how?
+        }
+        
     }
 
     object Model : UnbakedModel {
