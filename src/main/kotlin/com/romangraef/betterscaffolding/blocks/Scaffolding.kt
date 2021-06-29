@@ -148,7 +148,12 @@ object Scaffolding {
     
         fun hasValidPlankPosition(world: WorldAccess, blockPos: BlockPos, blockState: BlockState): Boolean {
             val sides = blockState[States.PLANK].toPolePositions()?.toList() ?: return true
-            return sides.all { world.getBlockState(blockPos.offset(it.toDirection())) == blockState[States.PLANK] }
+            return sides.all {
+                val side = world.getBlockState(blockPos.offset(it.toDirection()))
+                if (side.block != this) return@all false
+                if (side[States.PLANK] == blockState[States.PLANK]) return@all true
+                return@all false
+            }
         }
 
         fun hasPlanks(blockState: BlockState) = blockState[States.PLANK] != PlankState.NONE
