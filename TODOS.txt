@@ -6,6 +6,8 @@ Forklift:
 
 Scaffolding:
  - Texturing (pls jannis, do this, i(nea) only know how to render entities)
+ - Stairs
+ - Railing
 
 Mortar/Cement mixer:
  - Actually add it
