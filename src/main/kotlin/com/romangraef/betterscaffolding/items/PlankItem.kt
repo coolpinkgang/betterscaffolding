@@ -37,19 +37,34 @@ class PlankItem(settings: Settings) : Item(settings) {
         val world = context.world ?: return ActionResult.FAIL
         val stack = context.stack ?: return ActionResult.FAIL
         val firstState = world.getBlockState(firstPos)
-        if (firstState.block != BBlock.scaffoldMicroBlock || !Scaffolding.Block.hasPole(lookingDirection.opposite.toPolePosition(), firstState)) return ActionResult.FAIL
+        fun hasValidFirstPos(): Boolean {
+            if (firstState.block != BBlock.scaffoldMicroBlock) return false
+            if (Scaffolding.Block.hasPole(lookingDirection.opposite.toPolePosition(), firstState)) return true
+            if (Scaffolding.Block.hasPole(lookingDirection.toPolePosition(), firstState))
+                return Scaffolding.Block.hasPlank(firstState, plankDirection)
+            return false
+        }
+        if (!hasValidFirstPos()) return ActionResult.FAIL
         val toUpdate = generateSequence(firstPos) {
             it.offset(lookingDirection)
         }
-            .take(BetterScaffolding.config.groupScaffolding.maxLength)
-            .toList()
             .map { it to world.getBlockState(it) }
             .takeWhile { (_, state) ->
-                state.isAir ||
-                        (state.block == BBlock.scaffoldMicroBlock &&
-                                !BBlock.scaffoldMicroBlock.hasPlanks(state))
+                if (state.isAir) return@takeWhile true
+                if (state.block != Scaffolding.Block) return@takeWhile false
+                if (Scaffolding.Block.hasPole(lookingDirection.toPolePosition(), state)) return@takeWhile true
+                if (Scaffolding.Block.hasPole(lookingDirection.opposite.toPolePosition(), state))
+                    return@takeWhile Scaffolding.Block.hasPlank(state, plankDirection)
+                return@takeWhile false
             }
-            .dropLastWhile { (_, state) -> state.block != BBlock.scaffoldMicroBlock || !Scaffolding.Block.hasPole(lookingDirection.toPolePosition(), state) }
+            .take(BetterScaffolding.config.groupScaffolding.maxLength)
+            .toList()
+            .dropLastWhile { (_, state) ->
+                if (state.block != Scaffolding.Block) return@dropLastWhile true
+                if (Scaffolding.Block.hasPole(lookingDirection.toPolePosition(), state)) return@dropLastWhile false
+                if (Scaffolding.Block.hasPlank(state, lookingDirection.plankDirection)) return@dropLastWhile false
+                return@dropLastWhile true
+            }
         if (toUpdate.isEmpty() || toUpdate.size < BetterScaffolding.config.groupScaffolding.minLength) return ActionResult.FAIL
         if (toUpdate.any { (pos, _) ->
                 !world.canPlayerModifyAt(
