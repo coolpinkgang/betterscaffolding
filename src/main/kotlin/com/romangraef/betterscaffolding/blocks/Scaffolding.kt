@@ -166,6 +166,7 @@ object Scaffolding {
         ): (BlockState) -> BlockState {
             val sides = blockState[States.PLANK].toPolePositions()?.toList() ?: return { it }
             sides.forEach {
+                if (hasPole(it, blockState)) return@forEach
                 val side = world.getBlockState(blockPos.offset(it.toDirection()))
                 if (side.block != this) return { it.with(States.PLANK, PlankState.NONE) }
                 if (side[States.PLANK] != blockState[States.PLANK])
@@ -416,8 +417,3 @@ object Scaffolding {
     }
 
 }
-
-private fun <U, R, T> ((U) -> R).then(next: (R) -> T): (U) -> T =
-    {
-        next(this(it))
-    }

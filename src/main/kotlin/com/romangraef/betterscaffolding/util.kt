@@ -20,3 +20,8 @@ inline fun <reified T> enumProperty() where T : Enum<T>, T : StringIdentifiable 
     property { EnumProperty.of(it, T::class.java) }
 
 val Number.pixelAsDouble: Double get() = this.toDouble()/16.0
+
+fun <U, R, T> ((U) -> R).then(next: (R) -> T): (U) -> T =
+    {
+        next(this(it))
+    }
