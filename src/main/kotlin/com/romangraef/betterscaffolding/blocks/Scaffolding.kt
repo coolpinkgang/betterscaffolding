@@ -52,14 +52,14 @@ object Scaffolding {
             WEST -> LegPosition.NORTH_WEST to LegPosition.SOUTH_WEST
             EAST -> LegPosition.NORTH_WEST to LegPosition.SOUTH_EAST
         }
-        
+
         fun toDirection(): Direction = when (this) {
             NORTH -> Direction.NORTH
             SOUTH -> Direction.SOUTH
-            WEST  -> Direction.WEST
-            EAST  -> Direction.EAST
+            WEST -> Direction.WEST
+            EAST -> Direction.EAST
         }
-        
+
     }
 
     enum class LegPosition(val offsetX: Double, val offsetZ: Double) {
@@ -90,9 +90,9 @@ object Scaffolding {
 
         override fun asString(): String = name.lowercase()
         fun toPolePositions(): Pair<PolePosition, PolePosition>? = when (this) {
-            NONE        -> null
+            NONE -> null
             NORTH_SOUTH -> PolePosition.NORTH to PolePosition.SOUTH
-            WEST_EAST   -> PolePosition.WEST to PolePosition.EAST
+            WEST_EAST -> PolePosition.WEST to PolePosition.EAST
         }
     }
 
@@ -158,7 +158,7 @@ object Scaffolding {
             }
             return { it }
         }
-    
+
         fun checkPlankPositionOrUpdate(
             world: WorldAccess,
             blockPos: BlockPos,
@@ -187,16 +187,16 @@ object Scaffolding {
             var i = 0
             if (hasPoles(blockState)) {
                 i++
-                result = { checkPolePositionOrUpdate(world, blockPos, blockState)(result(it)) }
+                result = result.then(checkPolePositionOrUpdate(world, blockPos, blockState))
             }
-            if (hasPlanks(blockState)){
+            if (hasPlanks(blockState)) {
                 i++
-                result = { checkPlankPositionOrUpdate(world, blockPos, blockState)(result(it)) }
+                result = result.then(checkPlankPositionOrUpdate(world, blockPos, blockState))
             }
             if (i == 0) return null
             return result
         }
-    
+
         private fun updateSingularPole(
             prop: EnumProperty<PoleState>,
             bs: BlockState,
@@ -325,11 +325,11 @@ object Scaffolding {
 
         override fun getPickStack(world: BlockView, pos: BlockPos, state: BlockState): ItemStack =
             ItemStack(BItems.pole, 1)
-    
+
         override fun onBreak(world: World?, pos: BlockPos?, state: BlockState?, player: PlayerEntity?) {
             super.onBreak(world, pos, state, player) //TODO: do this but how?
         }
-        
+
     }
 
     object Model : UnbakedModel {
@@ -416,3 +416,8 @@ object Scaffolding {
     }
 
 }
+
+private fun <U, R, T> ((U) -> R).then(next: (R) -> T): (U) -> T =
+    {
+        next(this(it))
+    }
