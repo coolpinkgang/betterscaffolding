@@ -10,7 +10,6 @@ import net.minecraft.block.Blocks
 import net.minecraft.block.ShapeContext
 import net.minecraft.client.render.model.*
 import net.minecraft.client.texture.Sprite
-import net.minecraft.client.texture.SpriteAtlasTexture
 import net.minecraft.client.util.ModelIdentifier
 import net.minecraft.client.util.SpriteIdentifier
 import net.minecraft.entity.player.PlayerEntity
@@ -63,11 +62,11 @@ object Scaffolding {
 
     }
 
-    enum class LegPosition {
-        NORTH_WEST,
-        NORTH_EAST,
-        SOUTH_WEST,
-        SOUTH_EAST;
+    enum class LegPosition(val offsetX: Double, val offsetZ: Double) {
+        NORTH_WEST(1.pixelAsDouble, 1.pixelAsDouble),
+        NORTH_EAST(15.pixelAsDouble, 1.pixelAsDouble),
+        SOUTH_WEST(1.pixelAsDouble, 15.pixelAsDouble),
+        SOUTH_EAST(15.pixelAsDouble, 15.pixelAsDouble);
 
         fun toPolePositions(): Pair<PolePosition, PolePosition> = when (this) {
             NORTH_WEST -> PolePosition.NORTH to PolePosition.WEST
@@ -257,7 +256,14 @@ object Scaffolding {
             return state
         }
 
-        fun getLegShape(legPosition: LegPosition): VoxelShape = BVoxelShapes.fromModel(Model.getLegModel(legPosition))
+        fun getLegShape(legPosition: LegPosition): VoxelShape = VoxelShapes.cuboid(
+            legPosition.offsetX - 0.0625,
+            0.0,
+            legPosition.offsetZ - 0.0625,
+            legPosition.offsetX + 0.0625,
+            1.0,
+            legPosition.offsetZ + 0.0625
+        )
 
         fun getPolesShape(state: BlockState): VoxelShape {
             var result = VoxelShapes.empty()
@@ -339,73 +345,42 @@ object Scaffolding {
                 return null
             }
         }
-        
-        fun getLegModel(legPosition: LegPosition) = model(SpriteIdentifier(
-            SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE,
-            BetterScaffolding.id("block/poles")
-        )) {
-            val (posX, posZ) = when (legPosition) {
-                LegPosition.NORTH_WEST -> listOf(0, 0)
-                LegPosition.NORTH_EAST -> listOf(15, 0)
-                LegPosition.SOUTH_WEST -> listOf(0, 15)
-                LegPosition.SOUTH_EAST -> listOf(15, 15)
-            }
-            cube(posX, 0, posZ, 1, 16, 1) {
-                faceB(Direction.NORTH, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.SOUTH, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.UP, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.DOWN, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.WEST, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.EAST, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-            }
+
+        fun getLegModel(legPosition: LegPosition) = when (legPosition) {
+            LegPosition.NORTH_WEST ->
+                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_leg_nw"), "")
+            LegPosition.NORTH_EAST ->
+                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_leg_ne"), "")
+            LegPosition.SOUTH_WEST ->
+                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_leg_sw"), "")
+            LegPosition.SOUTH_EAST ->
+                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_leg_se"), "")
         }
 
-        fun getConnectionModel(polePosition: PolePosition) = model(SpriteIdentifier(
-            SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE,
-            BetterScaffolding.id("block/poles")
-        )) {
-            val (posX, posZ, sizeX, sizeZ) = when (polePosition) {
-                PolePosition.NORTH -> listOf(1, .1, 1, .8)
-                PolePosition.SOUTH -> listOf(1, 15.1, 1, .8)
-                PolePosition.WEST  -> listOf(.1, 1, .8, 1)
-                PolePosition.EAST  -> listOf(15.1, 1, .8, 1)
-            }
-            cube(posX, 13, posZ, sizeX, 2, sizeZ) {
-                faceB(Direction.NORTH, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.SOUTH, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.UP, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.DOWN, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.WEST, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.EAST, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-            }
-        }
-        
-        fun ModelBuilder.plankCube(posX: Number, posZ: Number, sizeX: Number, sizeZ: Number) =
-            cube(posX, 15, posZ, sizeX, 1, sizeZ) {
-                faceB(Direction.NORTH, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.SOUTH, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.UP, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.DOWN, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.WEST, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-                faceB(Direction.EAST, breakTexture, 0f to 0f, 0f to 1f, 1f to 1f, 1f to 0f)
-            }
-
-        fun getPlanksModel(plankState: PlankState): com.romangraef.betterscaffolding.Model? {
-            val (pos1X, pos1Z, pos2X, pos2Z, sizeX, sizeZ) = when (plankState) {
-                PlankState.NONE -> null
-                PlankState.NORTH_SOUTH -> listOf(1.1, 0, 9.1, 0, 6, 16)
-                PlankState.WEST_EAST -> listOf(0, 1.1, 0, 9.1, 16, 6)
-            } ?: return null
-            return model(SpriteIdentifier(
-                SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE,
-                BetterScaffolding.id("block/plank")
-            )) {
-                plankCube(pos1X, pos1Z, sizeX, sizeZ)
-                plankCube(pos2X, pos2Z, sizeX, sizeZ)
-            }
+        fun getConnectionModel(polePosition: PolePosition): Identifier = when (polePosition) {
+            PolePosition.NORTH ->
+                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_n"), "")
+            PolePosition.SOUTH ->
+                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_s"), "")
+            PolePosition.WEST ->
+                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_w"), "")
+            PolePosition.EAST ->
+                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_e"), "")
         }
 
-        override fun getModelDependencies(): MutableCollection<Identifier> = mutableListOf()
+        fun getPlankModel(plankState: PlankState): Identifier? = when (plankState) {
+            PlankState.NONE -> null
+            PlankState.NORTH_SOUTH ->
+                ModelIdentifier(BetterScaffolding.id("block/scaffolding_planks_ns"), "")
+            PlankState.WEST_EAST ->
+                ModelIdentifier(BetterScaffolding.id("block/scaffolding_planks_we"), "")
+        }
+
+        override fun getModelDependencies(): MutableCollection<Identifier> =
+            (LegPosition.values().map { getLegModel(it) }
+                    + PolePosition.values().map { getConnectionModel(it) }
+                    + PlankState.values().mapNotNull { getPlankModel(it) }
+                    ).toMutableList()
 
         override fun getTextureDependencies(
             unbakedModelGetter: Function<Identifier, UnbakedModel>,
@@ -423,18 +398,18 @@ object Scaffolding {
             LegPosition.values().map<LegPosition, ImmutablePair<Predicate<BlockState>, BakedModel>> { pos ->
                 ImmutablePair(
                     Predicate { Block.hasLeg(pos, it) },
-                    getLegModel(pos).bake(loader, textureGetter, rotationContainer, modelId)
+                    loader.bake(getLegModel(pos), rotationContainer)
                 )
             } + PolePosition.values().map<PolePosition, ImmutablePair<Predicate<BlockState>, BakedModel>> { pos ->
                 ImmutablePair(
                     Predicate { Block.hasConnection(pos, it) },
-                    getConnectionModel(pos).bake(loader, textureGetter, rotationContainer, modelId)
+                    loader.bake(getConnectionModel(pos), rotationContainer)
                 )
             } + PlankState.values().filter { it != PlankState.NONE }
                 .map<PlankState, ImmutablePair<Predicate<BlockState>, BakedModel>> { state ->
                     ImmutablePair(
                         Predicate { Block.hasPlank(it, state) },
-                        getPlanksModel(state)!!.bake(loader, textureGetter, rotationContainer, modelId)
+                        loader.bake(getPlankModel(state), rotationContainer)
                     )
                 }
         )
@@ -442,5 +417,3 @@ object Scaffolding {
     }
 
 }
-
-private operator fun <E> List<E>.component6(): E = this[5]
