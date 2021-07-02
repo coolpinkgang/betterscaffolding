@@ -22,6 +22,12 @@ object BVoxelShapes {
             minY.toDouble() + height.toDouble(),
             minZ.toDouble() + sizeZ.toDouble()
         )
+    
+    fun fromModel(model: Model): VoxelShape {
+        var shape = VoxelShapes.empty()
+        model.cubes.forEach { shape += cuboidB(it.posX, it.posY, it.posZ, it.sizeX, it.sizeY, it.sizeZ) }
+        return shape
+    }
 
     fun combine(vararg shapes: VoxelShape, function: BooleanBiFunction): VoxelShape {
         var shape = shapes.first()
