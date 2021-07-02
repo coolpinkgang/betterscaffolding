@@ -53,7 +53,7 @@ class PlankItem(settings: Settings) : Item(settings) {
             .takeWhile { (_, state) ->
                 if (first) { first = false; return@takeWhile true }
                 if (state.isAir) return@takeWhile true
-                if (state.block != Scaffolding.Block) return@takeWhile false
+                if (state.block != BBlock.scaffoldMicroBlock) return@takeWhile false
                 if (Scaffolding.Block.hasPole(lookingDirection.toPolePosition(), state)) return@takeWhile true
                 if (Scaffolding.Block.hasPole(lookingDirection.opposite.toPolePosition(), state))
                     return@takeWhile Scaffolding.Block.hasPlank(state, plankDirection)
