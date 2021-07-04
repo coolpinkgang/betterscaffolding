@@ -1,12 +1,20 @@
+import com.modrinth.minotaur.TaskModrinthUpload
+
 plugins {
     kotlin("jvm") version "1.5.10"
     id("fabric-loom") version "0.9.9"
     id("com.github.eutro.hierarchical-lang") version "1.1.3"
+    id("com.modrinth.minotaur") version "1.2.1"
 }
 
 val modId: String by project
 val modVersion: String by project
 val minecraftVersion: String by project
+val modrinthToken: String? by project
+val modrinthId: String by project
+val modVersionName: String? by project
+
+val changelogTxt = project.rootDir.resolve("CHANGELOG.txt").readText().split("\n====+\n".toRegex()).last().trim()
 
 project.group = "com.romangraef"
 version = "$minecraftVersion-$modVersion"
@@ -16,11 +24,26 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-base {
-    archivesBaseName = modId + "-test"
+tasks.create("printChangelog") {
+    doLast {
+        print(changelogTxt)
+    }
 }
 
-
+tasks.create<TaskModrinthUpload>("publishModrinth") {
+    onlyIf {
+        modrinthToken != null && project.properties.getOrDefault("modrinth", "no") == "confirm"
+    }
+    projectId = modrinthId
+    token = modrinthToken
+    changelog = changelogTxt
+    versionName = modVersionName
+    uploadFile = tasks.getByName("remapJar")
+    dependsOn("remapJar")
+    versionNumber = modVersion
+    addGameVersion("1.17")
+    addLoader("fabric")
+}
 
 repositories {
     maven(url = "https://maven.fabricmc.net/")

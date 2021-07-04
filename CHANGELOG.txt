@@ -1,0 +1,6 @@
+1.0.0 - Modfest Release
+
+Added:
+ - Forklifts (including certification)
+ - Multiblock scaffolding (planks and poles)
+
