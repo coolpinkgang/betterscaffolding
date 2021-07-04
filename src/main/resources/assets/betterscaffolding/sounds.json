@@ -1,0 +1,8 @@
+{
+  "forklift_move": {
+    "subtitle": "subtitle.forklift.move",
+    "sounds": [
+      "betterscaffolding:forklift_move"
+    ]
+  }
+}

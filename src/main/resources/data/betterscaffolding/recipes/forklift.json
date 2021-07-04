@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    " mt",
+    "   "
+  ],
+  "key": {
+    "m": {
+      "item": "minecraft:minecart"
+    },
+    "t": {
+      "item": "minecraft:trident"
+    }
+  },
+  "result": {
+    "item": "betterscaffolding:forklift",
+    "count": 1
+  }
+}

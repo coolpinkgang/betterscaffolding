@@ -1,17 +1,18 @@
 {
 	"credit": "Made with Blockbench",
+	"parent": "betterscaffolding:block/main",
 	"elements": [
 		{
 			"from": [0, 0, 14],
 			"to": [2, 16, 16],
 			"color": 7,
 			"faces": {
-				"north": {"uv": [0, 0, 2, 16], "texture": "#missing"},
-				"east": {"uv": [6, 0, 8, 16], "texture": "#missing"},
-				"south": {"uv": [2, 0, 4, 16], "texture": "#missing"},
-				"west": {"uv": [4, 0, 6, 16], "texture": "#missing"},
-				"up": {"uv": [8, 0, 10, 2], "texture": "#missing"},
-				"down": {"uv": [8, 2, 10, 4], "texture": "#missing"}
+				"north": {"uv": [0, 0, 2, 16], "texture": "#gray"},
+				"east": {"uv": [6, 0, 8, 16], "texture": "#gray"},
+				"south": {"uv": [2, 0, 4, 16], "texture": "#gray"},
+				"west": {"uv": [4, 0, 6, 16], "texture": "#gray"},
+				"up": {"uv": [8, 0, 10, 2], "texture": "#gray"},
+				"down": {"uv": [8, 2, 10, 4], "texture": "#gray"}
 			}
 		}
 	]

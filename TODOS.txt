@@ -1,7 +1,5 @@
 Forklift:
- - Make Blocks pickupable
  - Make blockentities (with either whitelist or blacklist) pickupable
- - Require forklift certification (maybe config for this)
  - Sounds while driving / moving, maybe something royalty free, or self recorded.
 
 Scaffolding:
