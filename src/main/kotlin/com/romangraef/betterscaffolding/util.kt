@@ -20,11 +20,13 @@ fun <T : Property<*>> property(getter: (String) -> T) = object : ReadOnlyPropert
 inline fun <reified T> enumProperty() where T : Enum<T>, T : StringIdentifiable =
     property { EnumProperty.of(it, T::class.java) }
 
-val Number.pixelAsDouble: Double get() = this.toDouble()/16.0
+val Number.pixelAsDouble: Double get() = this.toDouble() / 16.0
 
 fun <U, R, T> ((U) -> R).then(next: (R) -> T): (U) -> T =
     {
         next(this(it))
     }
+
+fun <T> identity(): (T) -> T = { it }
 
 fun Scaffolding.PolePosition.toShorthand() = name.first().lowercase()

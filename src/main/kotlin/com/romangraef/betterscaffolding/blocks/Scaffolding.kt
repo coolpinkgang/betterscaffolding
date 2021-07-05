@@ -102,7 +102,7 @@ object Scaffolding {
             NORTH_SOUTH -> PolePosition.NORTH to PolePosition.SOUTH
             WEST_EAST -> PolePosition.WEST to PolePosition.EAST
             STAIR_NORTH_SOUTH -> PolePosition.NORTH to PolePosition.SOUTH
-            STAIR_SOUTH_NORTH -> PolePosition.SOUTH to PolePosition.WEST
+            STAIR_SOUTH_NORTH -> PolePosition.SOUTH to PolePosition.NORTH
             STAIR_WEST_EAST -> PolePosition.WEST to PolePosition.EAST
             STAIR_EAST_WEST -> PolePosition.EAST to PolePosition.WEST
         }
@@ -122,7 +122,22 @@ object Scaffolding {
                 shape += BVoxelShapes.cuboidB(
                     0, 3, 1, 4, 1, 14,
                     negateX = this == STAIR_SOUTH_NORTH || this == STAIR_EAST_WEST,
-                    switchXZ = this == STAIR_WEST_EAST || this == STAIR_EAST_WEST
+                    switchXZ = this == STAIR_NORTH_SOUTH || this == STAIR_SOUTH_NORTH
+                )
+                shape += BVoxelShapes.cuboidB(
+                    4, 7, 1, 4, 1, 14,
+                    negateX = this == STAIR_SOUTH_NORTH || this == STAIR_EAST_WEST,
+                    switchXZ = this == STAIR_NORTH_SOUTH || this == STAIR_SOUTH_NORTH
+                )
+                shape += BVoxelShapes.cuboidB(
+                    8, 11, 1, 4, 1, 14,
+                    negateX = this == STAIR_SOUTH_NORTH || this == STAIR_EAST_WEST,
+                    switchXZ = this == STAIR_NORTH_SOUTH || this == STAIR_SOUTH_NORTH
+                )
+                shape += BVoxelShapes.cuboidB(
+                    12, 15, 1, 4, 1, 14,
+                    negateX = this == STAIR_SOUTH_NORTH || this == STAIR_EAST_WEST,
+                    switchXZ = this == STAIR_NORTH_SOUTH || this == STAIR_SOUTH_NORTH
                 )
             }
             return shape
@@ -172,62 +187,93 @@ object Scaffolding {
             world: WorldAccess,
             blockPos: BlockPos,
             blockState: BlockState,
-        ): (BlockState) -> BlockState {
+        ): BlockState {
             val underneath = world.getBlockState(blockPos.offset(Direction.DOWN))
             if (underneath.isAir)
-                return {
-                    it.with(States.POLE_N, PoleState.NONE)
-                        .with(States.POLE_S, PoleState.NONE)
-                        .with(States.POLE_W, PoleState.NONE)
-                        .with(States.POLE_E, PoleState.NONE)
-                }
+                return blockState.with(States.POLE_N, PoleState.NONE)
+                    .with(States.POLE_S, PoleState.NONE)
+                    .with(States.POLE_W, PoleState.NONE)
+                    .with(States.POLE_E, PoleState.NONE)
+
             if (underneath.block == this) {
-                var result: (BlockState) -> BlockState = { it }
-                PolePosition.values().forEach { pos ->
+                return PolePosition.values().fold(blockState) { state, pos ->
                     if (hasPole(pos, blockState) > hasPole(pos, underneath))
-                        result = { it.with(pos.toProperty(), PoleState.NONE) }
+                        state.with(pos.toProperty(), PoleState.NONE)
+                    else state
                 }
-                return result
             }
-            return { it }
+            return blockState
         }
 
         fun checkPlankPositionOrUpdate(
             world: WorldAccess,
             blockPos: BlockPos,
             blockState: BlockState
-        ): (BlockState) -> BlockState {
-            val sides = blockState[States.PLANK].toPolePositions()?.toList() ?: return { it }
+        ): BlockState {
+            val sides = blockState[States.PLANK].toPolePositions()?.toList() ?: return blockState
+            val withoutPlanks = blockState.with(States.PLANK, PlankState.NONE)
             sides.forEach {
                 if (hasPole(it, blockState)) return@forEach
                 val side = world.getBlockState(blockPos.offset(it.toDirection()))
-                if (side.block != this) return { it.with(States.PLANK, PlankState.NONE) }
+                if (side.block != this) return withoutPlanks
                 if (side[States.PLANK] != blockState[States.PLANK])
-                    return { it.with(States.PLANK, PlankState.NONE) }
+                    return withoutPlanks
             }
-            return { it }
+            return blockState
+        }
+
+        fun checkStairPositionOrUpdate(
+            world: WorldAccess,
+            blockPos: BlockPos,
+            blockState: BlockState,
+        ): BlockState {
+            if (!blockState[States.PLANK].isStairs()) return blockState
+            val (lowerSide, upperSide) = blockState[States.PLANK].toPolePositions() ?: return blockState
+            val withoutPlanks = blockState.with(States.PLANK, PlankState.NONE)
+            //lowerside code
+            val belowPos = blockPos.offset(Direction.DOWN)
+            val belowState = world.getBlockState(belowPos)
+            if (belowState.isAir || belowState.block == this && !hasPole(lowerSide, belowState)) {
+                val lowerNeighborState = world.getBlockState(belowPos.offset(lowerSide.toDirection()))
+                if (lowerNeighborState.block != this) return withoutPlanks
+                if (lowerNeighborState[States.PLANK] != blockState[States.PLANK])
+                    if (!hasPole(upperSide, lowerNeighborState)) return withoutPlanks
+            }
+            //upperside code
+            if (!hasPole(upperSide, blockState)) {
+                val upperNeighborPos = blockPos.offset(upperSide.toDirection())
+                val upperNeighborState = world.getBlockState(upperNeighborPos)
+                if (upperNeighborState.block == this) {
+                    if (upperNeighborState[States.PLANK].toPolePositions()?.toList()?.contains(upperSide) != true)
+                        return withoutPlanks
+                }
+            }
+            return blockState
         }
 
         fun hasPlanks(blockState: BlockState) = blockState[States.PLANK] != PlankState.NONE
 
         fun hasPlank(blockState: BlockState, plankState: PlankState) = blockState[States.PLANK] == plankState
 
-        fun checkStateOrUpdate(
+        fun getUpdatedState(
             world: WorldAccess,
             blockPos: BlockPos,
             blockState: BlockState
-        ): ((BlockState) -> BlockState)? {
-            var result: (BlockState) -> BlockState = { it }
+        ): BlockState {
+            var result: BlockState = blockState
             var i = 0
             if (hasPoles(blockState)) {
                 i++
-                result = result.then(checkPolePositionOrUpdate(world, blockPos, blockState))
+                result = checkPolePositionOrUpdate(world, blockPos, result)
             }
             if (hasPlanks(blockState)) {
                 i++
-                result = result.then(checkPlankPositionOrUpdate(world, blockPos, blockState))
+                if (blockState[States.PLANK].isPlank())
+                    result = checkPlankPositionOrUpdate(world, blockPos, result)
+                if (blockState[States.PLANK].isStairs())
+                    result = checkStairPositionOrUpdate(world, blockPos, blockState)
             }
-            if (i == 0) return null
+            if (i == 0) return Blocks.AIR.defaultState
             return result
         }
 
@@ -273,8 +319,9 @@ object Scaffolding {
         }
 
         override fun scheduledTick(state: BlockState, world: ServerWorld, pos: BlockPos, random: Random) {
-            val updater = checkStateOrUpdate(world, pos, state) ?: return run { world.breakBlock(pos, true) }
-            setMicroblock(world, pos) { updater(it) }
+            val updatedState = getUpdatedState(world, pos, state)
+            if (updatedState != state)
+                world.setBlockState(pos, updatedState)
         }
 
         override fun getStateForNeighborUpdate(
