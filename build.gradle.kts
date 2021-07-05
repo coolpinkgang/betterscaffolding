@@ -5,14 +5,17 @@ plugins {
     id("fabric-loom") version "0.9.9"
     id("com.github.eutro.hierarchical-lang") version "1.1.3"
     id("com.modrinth.minotaur") version "1.2.1"
+    id("com.matthewprenger.cursegradle") version "1.4.0"
 }
 
 val modId: String by project
 val modVersion: String by project
 val minecraftVersion: String by project
 val modrinthToken: String? by project
+val curseforgeToken: String? by project
 val modrinthId: String by project
 val modVersionName: String? by project
+val curseforgeId: String by project
 
 val changelogTxt = project.rootDir.resolve("CHANGELOG.txt").readText().split("\n====+\n".toRegex()).last().trim()
 
@@ -24,26 +27,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-tasks.create("printChangelog") {
-    doLast {
-        print(changelogTxt)
-    }
-}
-
-tasks.create<TaskModrinthUpload>("publishModrinth") {
-    onlyIf {
-        modrinthToken != null && project.properties.getOrDefault("modrinth", "no") == "confirm"
-    }
-    projectId = modrinthId
-    token = modrinthToken
-    changelog = changelogTxt
-    versionName = modVersionName
-    uploadFile = tasks.getByName("remapJar")
-    dependsOn("remapJar")
-    versionNumber = modVersion
-    addGameVersion("1.17")
-    addLoader("fabric")
-}
 
 repositories {
     maven(url = "https://maven.fabricmc.net/")
@@ -71,6 +54,55 @@ dependencies {
     modApi("me.shedaniel.cloth:cloth-config-fabric:5.0.34") {
         exclude(group = "net.fabricmc.fabric-api")
     }
+}
+
+
+tasks.create("printChangelog") {
+    doLast {
+        print(changelogTxt)
+    }
+}
+curseforge {
+    options(closureOf<com.matthewprenger.cursegradle.Options> {
+        forgeGradleIntegration = false
+    })
+    this.project(closureOf<com.matthewprenger.cursegradle.CurseProject> {
+        id = curseforgeId
+        print("c:$curseforgeToken")
+
+        apiKey = if (project.properties.getOrDefault("curse", "no") == "confirm") (curseforgeToken ?: "") else ""
+        changelog = changelogTxt
+        addGameVersion("Fabric")
+        addGameVersion("1.17")
+        addGameVersion("Java 16")
+        releaseType = "release"
+
+        relations(closureOf<com.matthewprenger.cursegradle.CurseRelation> {
+            requiredDependency("fabric-api")
+            optionalDependency("modmenu")
+            requiredDependency("cloth-config")
+        })
+        afterEvaluate {
+            mainArtifact(tasks.getByName("remapJar"), closureOf<com.matthewprenger.cursegradle.CurseArtifact> {
+                displayName = modVersionName
+            })
+            uploadTask.dependsOn("remapJar")
+        }
+    })
+}
+tasks.create<TaskModrinthUpload>("publishModrinth") {
+    onlyIf {
+        modrinthToken != null && project.properties.getOrDefault("modrinth", "no") == "confirm"
+    }
+    projectId = modrinthId
+    token = modrinthToken
+    changelog = changelogTxt
+    versionName = modVersionName
+    uploadFile = tasks.getByName("remapJar")
+    dependsOn("remapJar")
+    versionNumber = modVersion
+    addGameVersion("1.17")
+    addLoader("fabric")
 }
 
 tasks.processResources {
