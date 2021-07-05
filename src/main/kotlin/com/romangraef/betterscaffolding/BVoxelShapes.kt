@@ -61,3 +61,11 @@ object BVoxelShapes {
 
 operator fun VoxelShape.plus(other: VoxelShape) = VoxelShapes.combine(this, other, BooleanBiFunction.OR)!!
 operator fun VoxelShape.times(other: VoxelShape) = VoxelShapes.combine(this, other, BooleanBiFunction.AND)!!
+
+class VoxelShapeBuilder(internal var shape: VoxelShape) {
+    operator fun plusAssign(other: VoxelShape) { shape += other }
+    operator fun timesAssign(other: VoxelShape) { shape *= other }
+}
+
+fun buildShape(start: VoxelShape = VoxelShapes.empty(), block: (VoxelShapeBuilder) -> Unit): VoxelShape =
+    VoxelShapeBuilder(start).apply(block).shape

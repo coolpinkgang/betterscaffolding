@@ -33,11 +33,26 @@ import java.util.function.Predicate
 
 object Scaffolding {
 
-    enum class PolePosition(val minX: Number, val minZ: Number, val sizeX: Number, val sizeZ: Number) {
-        NORTH(2, 0.5, 12, 1),
-        SOUTH(2, 14.5, 12, 1),
-        WEST(0.5, 2, 1, 12),
-        EAST(14.5, 2, 1, 12);
+    enum class PolePosition {
+        NORTH,
+        SOUTH,
+        WEST,
+        EAST;
+
+        fun getVoxelShape(blockState: BlockState): VoxelShape = buildShape { shape ->
+            if (blockState[this.toProperty()] == PoleState.HEAD) shape += BVoxelShapes.cuboidB(
+                0.5, 13, 2, 1, 2, 14,
+                negateX = this == SOUTH || this == EAST,
+                switchXZ = this == WEST || this == EAST
+            )
+            if (blockState[this.toProperty()] != PoleState.NONE)
+                this.toLegPositions().toList().forEach { shape += it.getVoxelShape() }
+        }
+
+        fun getConnectionModelId(): ModelIdentifier {
+            val directions = toShorthand()
+            return ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_$directions"), "")
+        }
 
         fun toProperty() = when (this) {
             NORTH -> States.POLE_N
@@ -62,11 +77,22 @@ object Scaffolding {
 
     }
 
-    enum class LegPosition(val offsetX: Double, val offsetZ: Double) {
-        NORTH_WEST(1.pixelAsDouble, 1.pixelAsDouble),
-        NORTH_EAST(15.pixelAsDouble, 1.pixelAsDouble),
-        SOUTH_WEST(1.pixelAsDouble, 15.pixelAsDouble),
-        SOUTH_EAST(15.pixelAsDouble, 15.pixelAsDouble);
+    enum class LegPosition {
+        NORTH_WEST,
+        NORTH_EAST,
+        SOUTH_WEST,
+        SOUTH_EAST;
+
+        fun getModelId(): ModelIdentifier {
+            val directions = toPolePositions().toList().joinToString("") { it.toShorthand() }
+            return ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_leg_$directions"), "")
+        }
+
+        fun getVoxelShape() = BVoxelShapes.cuboidB(
+            0, 0, 0, 2, 16, 2,
+            negateX = this == NORTH_EAST || this == SOUTH_EAST,
+            negateZ = this == SOUTH_WEST || this == SOUTH_EAST
+        )
 
         fun toPolePositions(): Pair<PolePosition, PolePosition> = when (this) {
             NORTH_WEST -> PolePosition.NORTH to PolePosition.WEST
@@ -97,6 +123,7 @@ object Scaffolding {
         }
 
         override fun asString(): String = name.lowercase()
+
         fun toPolePositions(): Pair<PolePosition, PolePosition>? = when (this) {
             NONE -> null
             NORTH_SOUTH -> PolePosition.NORTH to PolePosition.SOUTH
@@ -107,40 +134,24 @@ object Scaffolding {
             STAIR_EAST_WEST -> PolePosition.EAST to PolePosition.WEST
         }
 
-        fun getVoxelShapes(): VoxelShape {
-            var shape = VoxelShapes.empty()
+        fun getVoxelShapes(): VoxelShape = buildShape { shape ->
             if (this == NORTH_SOUTH || this == WEST_EAST) {
-                shape += BVoxelShapes.cuboidB(
-                    2.5, 15, 0, 5, 1, 16,
-                    switchXZ = this == WEST_EAST
-                )
-                shape += BVoxelShapes.cuboidB(
-                    8.5, 15, 0, 5, 1, 16,
-                    switchXZ = this == WEST_EAST
-                )
+                listOf(true, false).forEach {
+                    shape += BVoxelShapes.cuboidB(
+                        2.5, 15, 0, 5, 1, 16,
+                        negateX = it,
+                        switchXZ = this == WEST_EAST
+                    )
+                }
             } else if (this != NONE) {
-                shape += BVoxelShapes.cuboidB(
-                    0, 3, 1, 4, 1, 14,
-                    negateX = this == STAIR_SOUTH_NORTH || this == STAIR_EAST_WEST,
-                    switchXZ = this == STAIR_NORTH_SOUTH || this == STAIR_SOUTH_NORTH
-                )
-                shape += BVoxelShapes.cuboidB(
-                    4, 7, 1, 4, 1, 14,
-                    negateX = this == STAIR_SOUTH_NORTH || this == STAIR_EAST_WEST,
-                    switchXZ = this == STAIR_NORTH_SOUTH || this == STAIR_SOUTH_NORTH
-                )
-                shape += BVoxelShapes.cuboidB(
-                    8, 11, 1, 4, 1, 14,
-                    negateX = this == STAIR_SOUTH_NORTH || this == STAIR_EAST_WEST,
-                    switchXZ = this == STAIR_NORTH_SOUTH || this == STAIR_SOUTH_NORTH
-                )
-                shape += BVoxelShapes.cuboidB(
-                    12, 15, 1, 4, 1, 14,
-                    negateX = this == STAIR_SOUTH_NORTH || this == STAIR_EAST_WEST,
-                    switchXZ = this == STAIR_NORTH_SOUTH || this == STAIR_SOUTH_NORTH
-                )
+                (0..3).forEach {
+                    shape += BVoxelShapes.cuboidB(
+                        it * 4, (it + 1) * 4 - 1, 1, 4, 1, 14,
+                        negateX = this == STAIR_SOUTH_NORTH || this == STAIR_EAST_WEST,
+                        switchXZ = this == STAIR_NORTH_SOUTH || this == STAIR_SOUTH_NORTH
+                    )
+                }
             }
-            return shape
         }
     }
 
@@ -194,7 +205,6 @@ object Scaffolding {
                     .with(States.POLE_S, PoleState.NONE)
                     .with(States.POLE_W, PoleState.NONE)
                     .with(States.POLE_E, PoleState.NONE)
-
             if (underneath.block == this) {
                 return PolePosition.values().fold(blockState) { state, pos ->
                     if (hasPole(pos, blockState) > hasPole(pos, underneath))
@@ -336,36 +346,8 @@ object Scaffolding {
             return state
         }
 
-        fun getLegShape(legPosition: LegPosition): VoxelShape = VoxelShapes.cuboid(
-            legPosition.offsetX - 0.0625,
-            0.0,
-            legPosition.offsetZ - 0.0625,
-            legPosition.offsetX + 0.0625,
-            1.0,
-            legPosition.offsetZ + 0.0625
-        )
-
-        fun getPolesShape(state: BlockState): VoxelShape {
-            var result = VoxelShapes.empty()
-            LegPosition.values().forEach { if (hasLeg(it, state)) result += getLegShape(it) }
-            return result
-        }
-
-        fun getConnectionShape(polePosition: PolePosition): VoxelShape = BVoxelShapes.cuboidB(
-            polePosition.minX,
-            13,
-            polePosition.minZ,
-            polePosition.sizeX,
-            2,
-            polePosition.sizeZ
-        ) //TODO: make this mess a better mess
-
-        fun getConnectionsShape(
-            state: BlockState
-        ): VoxelShape {
-            var result = VoxelShapes.empty()
-            PolePosition.values().forEach { if (hasConnection(it, state)) result += getConnectionShape(it) }
-            return result
+        fun getPolesShape(state: BlockState): VoxelShape = buildShape { shape ->
+            PolePosition.values().forEach { shape += it.getVoxelShape(state) }
         }
 
         fun getPlankShape(state: BlockState) = state[States.PLANK].getVoxelShapes()
@@ -375,12 +357,9 @@ object Scaffolding {
             world: BlockView,
             pos: BlockPos,
             context: ShapeContext
-        ): VoxelShape {
-            var result = VoxelShapes.empty()
-            result += getPolesShape(state)
-            result += getConnectionsShape(state)
-            result += getPlankShape(state)
-            return result
+        ): VoxelShape = buildShape { shape ->
+            shape += getPolesShape(state)
+            shape += getPlankShape(state)
         }
 
         override fun getCollisionShape(
@@ -412,34 +391,10 @@ object Scaffolding {
             }
         }
 
-        fun getLegModel(legPosition: LegPosition) = when (legPosition) {
-            LegPosition.NORTH_WEST ->
-                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_leg_nw"), "")
-            LegPosition.NORTH_EAST ->
-                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_leg_ne"), "")
-            LegPosition.SOUTH_WEST ->
-                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_leg_sw"), "")
-            LegPosition.SOUTH_EAST ->
-                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_leg_se"), "")
-        }
-
-        fun getConnectionModel(polePosition: PolePosition): Identifier = when (polePosition) {
-            PolePosition.NORTH ->
-                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_n"), "")
-            PolePosition.SOUTH ->
-                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_s"), "")
-            PolePosition.WEST ->
-                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_w"), "")
-            PolePosition.EAST ->
-                ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_e"), "")
-        }
-
-        fun getPlankModel(plankState: PlankState): Identifier? = plankState.getModelId()
-
         override fun getModelDependencies(): MutableCollection<Identifier> =
-            (LegPosition.values().map { getLegModel(it) }
-                    + PolePosition.values().map { getConnectionModel(it) }
-                    + PlankState.values().mapNotNull { getPlankModel(it) }
+            (LegPosition.values().map { it.getModelId() }
+                    + PolePosition.values().map { it.getConnectionModelId() }
+                    + PlankState.values().mapNotNull { it.getModelId() }
                     ).toMutableList()
 
         override fun getTextureDependencies(
@@ -458,22 +413,21 @@ object Scaffolding {
             LegPosition.values().map<LegPosition, ImmutablePair<Predicate<BlockState>, BakedModel>> { pos ->
                 ImmutablePair(
                     Predicate { Block.hasLeg(pos, it) },
-                    loader.bake(getLegModel(pos), rotationContainer)
+                    loader.bake(pos.getModelId(), rotationContainer)
                 )
             } + PolePosition.values().map<PolePosition, ImmutablePair<Predicate<BlockState>, BakedModel>> { pos ->
                 ImmutablePair(
                     Predicate { Block.hasConnection(pos, it) },
-                    loader.bake(getConnectionModel(pos), rotationContainer)
+                    loader.bake(pos.getConnectionModelId(), rotationContainer)
                 )
             } + PlankState.values().filter { it != PlankState.NONE }
                 .map<PlankState, ImmutablePair<Predicate<BlockState>, BakedModel>> { state ->
                     ImmutablePair(
                         Predicate { Block.hasPlank(it, state) },
-                        loader.bake(getPlankModel(state), rotationContainer)
+                        loader.bake(state.getModelId(), rotationContainer)
                     )
                 }
         )
-
     }
 
 }
