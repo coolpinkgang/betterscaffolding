@@ -1,5 +1,6 @@
 package com.romangraef.betterscaffolding
 
+import com.romangraef.betterscaffolding.blocks.Scaffolding
 import net.minecraft.state.property.EnumProperty
 import net.minecraft.state.property.Property
 import net.minecraft.util.StringIdentifiable
@@ -25,3 +26,5 @@ fun <U, R, T> ((U) -> R).then(next: (R) -> T): (U) -> T =
     {
         next(this(it))
     }
+
+fun Scaffolding.PolePosition.toShorthand() = name.first().lowercase()

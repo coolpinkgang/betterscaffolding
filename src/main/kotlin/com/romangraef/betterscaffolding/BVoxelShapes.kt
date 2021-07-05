@@ -5,23 +5,49 @@ import net.minecraft.util.shape.VoxelShape
 import net.minecraft.util.shape.VoxelShapes
 
 object BVoxelShapes {
-    fun cuboidA(minX: Number, minY: Number, minZ: Number, maxX: Number, maxY: Number, maxZ: Number) =
+    fun cuboidA(
+        minX: Number,
+        minY: Number,
+        minZ: Number,
+        maxX: Number,
+        maxY: Number,
+        maxZ: Number,
+        switchXZ: Boolean = false,
+    ) =
         VoxelShapes.cuboid(
-            minX.toDouble() / 16.0,
+            (if (switchXZ) minZ else minX).toDouble() / 16.0,
             minY.toDouble() / 16.0,
-            minZ.toDouble() / 16.0,
-            maxX.toDouble() / 16.0,
+            (if (switchXZ) minX else minZ).toDouble() / 16.0,
+            (if (switchXZ) maxZ else maxX).toDouble() / 16.0,
             maxY.toDouble() / 16.0,
-            maxZ.toDouble() / 16.0
+            (if (switchXZ) maxX else maxZ).toDouble() / 16.0
         )
 
-    fun cuboidB(minX: Number, minY: Number, minZ: Number, sizeX: Number, height: Number, sizeZ: Number) =
-        cuboidA(
-            minX, minY, minZ,
+    fun cuboidB(
+        minX: Number,
+        minY: Number,
+        minZ: Number,
+        sizeX: Number,
+        height: Number,
+        sizeZ: Number,
+        negateX: Boolean = false,
+        negateZ: Boolean = false,
+        switchXZ: Boolean = false,
+    ): VoxelShape {
+        var minX = minX
+        if (negateX) minX = 16.0 - minX.toDouble()
+        var minZ = minZ
+        if (negateZ) minZ = 16.0 - minZ.toDouble()
+        return cuboidA(
+            minX,
+            minY,
+            minZ,
             minX.toDouble() + sizeX.toDouble(),
             minY.toDouble() + height.toDouble(),
-            minZ.toDouble() + sizeZ.toDouble()
+            minZ.toDouble() + sizeZ.toDouble(),
+            switchXZ
         )
+    }
 
     fun combine(vararg shapes: VoxelShape, function: BooleanBiFunction): VoxelShape {
         var shape = shapes.first()

@@ -76,23 +76,56 @@ object Scaffolding {
         }
     }
 
-    enum class PlankState(
-        val minX1: Number,
-        val minZ1: Number,
-        val minX2: Number,
-        val minZ2: Number,
-        val sizeX: Number,
-        val sizeZ: Number
-    ) : StringIdentifiable {
-        NONE(Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN),
-        NORTH_SOUTH(2.5, 0, 8.5, 0, 5, 16),
-        WEST_EAST(0, 2.5, 0, 8.5, 16, 5);
+    enum class PlankState : StringIdentifiable {
+        NONE,
+        NORTH_SOUTH,
+        WEST_EAST,
+        STAIR_NORTH_SOUTH,
+        STAIR_SOUTH_NORTH,
+        STAIR_WEST_EAST,
+        STAIR_EAST_WEST;
+
+        fun isPlank() = this == NORTH_SOUTH || this == WEST_EAST
+
+        fun isStairs() = !this.isPlank() && this != NONE
+
+        fun getModelId(): ModelIdentifier? {
+            if (this == NONE) return null
+            val type = if (isPlank()) "planks" else "stairs"
+            val direction = toPolePositions()!!.toList().joinToString("") { it.toShorthand() }
+            return ModelIdentifier(BetterScaffolding.id("block/scaffolding_${type}_$direction"), "")
+        }
 
         override fun asString(): String = name.lowercase()
         fun toPolePositions(): Pair<PolePosition, PolePosition>? = when (this) {
             NONE -> null
             NORTH_SOUTH -> PolePosition.NORTH to PolePosition.SOUTH
             WEST_EAST -> PolePosition.WEST to PolePosition.EAST
+            STAIR_NORTH_SOUTH -> PolePosition.NORTH to PolePosition.SOUTH
+            STAIR_SOUTH_NORTH -> PolePosition.SOUTH to PolePosition.WEST
+            STAIR_WEST_EAST -> PolePosition.WEST to PolePosition.EAST
+            STAIR_EAST_WEST -> PolePosition.EAST to PolePosition.WEST
+        }
+
+        fun getVoxelShapes(): VoxelShape {
+            var shape = VoxelShapes.empty()
+            if (this == NORTH_SOUTH || this == WEST_EAST) {
+                shape += BVoxelShapes.cuboidB(
+                    2.5, 15, 0, 5, 1, 16,
+                    switchXZ = this == WEST_EAST
+                )
+                shape += BVoxelShapes.cuboidB(
+                    8.5, 15, 0, 5, 1, 16,
+                    switchXZ = this == WEST_EAST
+                )
+            } else if (this != NONE) {
+                shape += BVoxelShapes.cuboidB(
+                    0, 3, 1, 4, 1, 14,
+                    negateX = this == STAIR_SOUTH_NORTH || this == STAIR_EAST_WEST,
+                    switchXZ = this == STAIR_WEST_EAST || this == STAIR_EAST_WEST
+                )
+            }
+            return shape
         }
     }
 
@@ -288,21 +321,7 @@ object Scaffolding {
             return result
         }
 
-        fun getPlankShape(state: BlockState) = BVoxelShapes.cuboidB(
-            state[States.PLANK].minX1,
-            15,
-            state[States.PLANK].minZ1,
-            state[States.PLANK].sizeX,
-            1,
-            state[States.PLANK].sizeZ
-        ) + BVoxelShapes.cuboidB(
-            state[States.PLANK].minX2,
-            15,
-            state[States.PLANK].minZ2,
-            state[States.PLANK].sizeX,
-            1,
-            state[States.PLANK].sizeZ
-        ) //TODO: make this mess a better mess
+        fun getPlankShape(state: BlockState) = state[States.PLANK].getVoxelShapes()
 
         override fun getOutlineShape(
             state: BlockState,
@@ -368,13 +387,7 @@ object Scaffolding {
                 ModelIdentifier(BetterScaffolding.id("block/scaffolding_support_connection_e"), "")
         }
 
-        fun getPlankModel(plankState: PlankState): Identifier? = when (plankState) {
-            PlankState.NONE -> null
-            PlankState.NORTH_SOUTH ->
-                ModelIdentifier(BetterScaffolding.id("block/scaffolding_planks_ns"), "")
-            PlankState.WEST_EAST ->
-                ModelIdentifier(BetterScaffolding.id("block/scaffolding_planks_we"), "")
-        }
+        fun getPlankModel(plankState: PlankState): Identifier? = plankState.getModelId()
 
         override fun getModelDependencies(): MutableCollection<Identifier> =
             (LegPosition.values().map { getLegModel(it) }
