@@ -15,7 +15,9 @@ Mortar/Cement mixer:
 
 Brick wall building and cement casting?
 
-Undead Construction Worker, xd (nea)
+Abandoned construction site:
+ - Undead Construction Worker, xd (nea)
+ - Worldgen of unfinished construction site, with spawners and loot
 
 General:
  - Crafting
