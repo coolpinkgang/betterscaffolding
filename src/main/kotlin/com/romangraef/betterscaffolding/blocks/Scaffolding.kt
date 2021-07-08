@@ -43,7 +43,7 @@ object Scaffolding {
             if (blockState[this.toProperty()] == PoleState.HEAD) shape += BVoxelShapes.cuboidB(
                 0.5, 13, 2, 1, 2, 14,
                 negateX = this == SOUTH || this == EAST,
-                switchXZ = this == WEST || this == EAST
+                switchXZ = this == NORTH || this == SOUTH
             )
             if (blockState[this.toProperty()] != PoleState.NONE)
                 this.toLegPositions().toList().forEach { shape += it.getVoxelShape() }
