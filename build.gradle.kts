@@ -81,6 +81,7 @@ curseforge {
             requiredDependency("fabric-api")
             optionalDependency("modmenu")
             requiredDependency("cloth-config")
+            requiredDependency("fabric-language-kotlin")
         })
         afterEvaluate {
             mainArtifact(tasks.getByName("remapJar"), closureOf<com.matthewprenger.cursegradle.CurseArtifact> {
