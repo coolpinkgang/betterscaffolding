@@ -1,10 +1,7 @@
 package com.romangraef.betterscaffolding.registries
 
 import com.romangraef.betterscaffolding.BetterScaffolding
-import com.romangraef.betterscaffolding.items.ForkliftCertification
-import com.romangraef.betterscaffolding.items.ForkliftItem
-import com.romangraef.betterscaffolding.items.PlankItem
-import com.romangraef.betterscaffolding.items.PoleItem
+import com.romangraef.betterscaffolding.items.*
 import net.minecraft.item.Item
 import net.minecraft.util.registry.Registry
 
@@ -21,5 +18,8 @@ object BItems : DefaultDelayedRegistry<Item>(Registry.ITEM, BetterScaffolding.mo
     }
     val license by "license" {
         ForkliftCertification(DEFAULT_SETTINGS)
+    }
+    val stairs by "stairs" {
+        StairsItem(DEFAULT_SETTINGS)
     }
 }

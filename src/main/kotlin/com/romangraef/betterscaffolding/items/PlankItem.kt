@@ -27,6 +27,14 @@ class PlankItem(settings: Settings) : Item(settings) {
                 this == Direction.WEST || this == Direction.EAST -> Scaffolding.PlankState.WEST_EAST
                 else -> throw IllegalStateException()
             }
+        fun hasValidFirstPos(context: ItemUsageContext): Boolean {
+            val firstState = context.world.getBlockState(context.blockPos)
+            if (firstState.block != BBlock.scaffoldMicroBlock) return false
+            if (Scaffolding.Block.hasPole(context.player!!.roundedLookDirection.opposite.toPolePosition(), firstState)) return true
+            if (Scaffolding.Block.hasPole(context.player!!.roundedLookDirection.toPolePosition(), firstState))
+                return Scaffolding.Block.hasPlank(firstState, context.player!!.roundedLookDirection.plankDirection)
+            return false
+        }
     }
 
     override fun useOnBlock(context: ItemUsageContext): ActionResult {
@@ -36,19 +44,9 @@ class PlankItem(settings: Settings) : Item(settings) {
         val firstPos = context.blockPos ?: return ActionResult.FAIL
         val world = context.world ?: return ActionResult.FAIL
         val stack = context.stack ?: return ActionResult.FAIL
-        val firstState = world.getBlockState(firstPos)
-        fun hasValidFirstPos(): Boolean {
-            if (firstState.block != BBlock.scaffoldMicroBlock) return false
-            if (Scaffolding.Block.hasPole(lookingDirection.opposite.toPolePosition(), firstState)) return true
-            if (Scaffolding.Block.hasPole(lookingDirection.toPolePosition(), firstState))
-                return Scaffolding.Block.hasPlank(firstState, plankDirection)
-            return false
-        }
-        if (!hasValidFirstPos()) return ActionResult.FAIL
+        if (!hasValidFirstPos(context)) return ActionResult.FAIL
         var first = true
-        val toUpdate = generateSequence(firstPos) {
-            it.offset(lookingDirection)
-        }
+        val toUpdate = generateSequence(firstPos) { it.offset(lookingDirection) }
             .map { it to world.getBlockState(it) }
             .takeWhile { (_, state) ->
                 if (first) { first = false; return@takeWhile true }
