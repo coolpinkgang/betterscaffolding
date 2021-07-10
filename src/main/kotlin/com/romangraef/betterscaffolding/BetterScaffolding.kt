@@ -2,19 +2,20 @@ package com.romangraef.betterscaffolding
 
 import com.romangraef.betterscaffolding.commands.ForkliftCommand
 import com.romangraef.betterscaffolding.networking.ServerPlayNetworkingHandlers
-import com.romangraef.betterscaffolding.registries.BBlock
-import com.romangraef.betterscaffolding.registries.BItems
-import com.romangraef.betterscaffolding.registries.REntities
-import com.romangraef.betterscaffolding.registries.VillagerTrades
+import com.romangraef.betterscaffolding.registries.*
+import com.romangraef.betterscaffolding.worldgen.UndeadConstructionSiteFeature
 import me.shedaniel.autoconfig.AutoConfig
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer
 import net.fabricmc.api.ModInitializer
+import net.fabricmc.fabric.api.biome.v1.BiomeModifications
+import net.fabricmc.fabric.api.biome.v1.BiomeSelectors
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
 import net.minecraft.item.ItemStack
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
+import net.minecraft.world.gen.GenerationStep
 import org.slf4j.LoggerFactory
 
 object BetterScaffolding : ModInitializer {
@@ -22,7 +23,7 @@ object BetterScaffolding : ModInitializer {
     val logger = LoggerFactory.getLogger(BetterScaffolding::class.java)
 
     val registries = listOf(
-        BItems, BBlock, REntities
+        BItems, BBlock, BEntities, BWorldGen, BSounds, BConfiguredWorldGen
     )
 
     fun id(string: String) = Identifier(modid, string)
@@ -42,6 +43,12 @@ object BetterScaffolding : ModInitializer {
         AutoConfig.register(BetterScaffoldingConfig::class.java, ::GsonConfigSerializer)
         CommandRegistrationCallback.EVENT.register(ForkliftCommand::register)
         VillagerTrades.registerTrades()
+        BiomeModifications.addFeature(
+            BiomeSelectors.all(),
+            GenerationStep.Feature.SURFACE_STRUCTURES,
+            BConfiguredWorldGen.keys[BConfiguredWorldGen.singleScaffolding]
+        )
+        UndeadConstructionSiteFeature.register()
     }
 }
 

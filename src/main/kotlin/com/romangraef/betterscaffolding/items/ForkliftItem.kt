@@ -1,6 +1,6 @@
 package com.romangraef.betterscaffolding.items
 
-import com.romangraef.betterscaffolding.registries.REntities
+import com.romangraef.betterscaffolding.registries.BEntities
 import net.minecraft.entity.SpawnReason
 import net.minecraft.item.Item
 import net.minecraft.item.ItemUsageContext
@@ -14,7 +14,7 @@ class ForkliftItem(settings: Settings) : Item(settings.maxCount(1)) {
             context.stack.count--
         }
         if (!context.world.isClient) {
-            val forklift = REntities.FORKLIFT.spawn(
+            val forklift = BEntities.FORKLIFT.spawn(
                 context.world as ServerWorld,
                 null,
                 null,

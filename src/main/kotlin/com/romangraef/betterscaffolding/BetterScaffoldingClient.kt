@@ -2,7 +2,7 @@ package com.romangraef.betterscaffolding
 
 import com.romangraef.betterscaffolding.blocks.Scaffolding
 import com.romangraef.betterscaffolding.entities.ForkliftRenderer
-import com.romangraef.betterscaffolding.registries.REntities
+import com.romangraef.betterscaffolding.registries.BEntities
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry
@@ -21,7 +21,7 @@ object BetterScaffoldingClient : ClientModInitializer {
 
     override fun onInitializeClient() {
         ModelLoadingRegistry.INSTANCE.registerResourceProvider { Scaffolding.Model.Provider }
-        EntityRendererRegistry.INSTANCE.register(REntities.FORKLIFT) { ForkliftRenderer(it) }
+        EntityRendererRegistry.INSTANCE.register(BEntities.FORKLIFT) { ForkliftRenderer(it) }
         Keybindings.forkliftDown = KeyBindingHelper.registerKeyBinding(
             KeyBinding(
                 "key.betterscaffolding.forkliftdown",

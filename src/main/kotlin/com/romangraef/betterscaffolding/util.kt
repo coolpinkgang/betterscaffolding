@@ -4,7 +4,9 @@ import com.romangraef.betterscaffolding.blocks.Scaffolding
 import net.minecraft.state.property.EnumProperty
 import net.minecraft.state.property.Property
 import net.minecraft.util.StringIdentifiable
+import net.minecraft.util.math.ChunkPos
 import kotlin.properties.ReadOnlyProperty
+import kotlin.random.Random
 import kotlin.reflect.KProperty
 
 fun <T : Property<*>> property(getter: (String) -> T) = object : ReadOnlyProperty<Any, T> {
@@ -28,5 +30,12 @@ fun <U, R, T> ((U) -> R).then(next: (R) -> T): (U) -> T =
     }
 
 fun <T> identity(): (T) -> T = { it }
+
+fun <T> Random.choose(f: T, vararg xs: T): T =
+    (listOf(f) + xs.toList()).random(this)
+
+fun ChunkPos.randomXZ(random: Random): Pair<Int, Int> =
+    random.nextInt(startX, endX + 1) to random.nextInt(startZ, endZ)
+
 
 fun Scaffolding.PolePosition.toShorthand() = name.first().lowercase()
