@@ -1,5 +1,6 @@
 {
   "textures": {
-    "gray": "betterscaffolding:block/gray"
+    "gray": "betterscaffolding:block/gray",
+    "particle": "betterscaffolding:block/gray"
   }
 }

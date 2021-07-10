@@ -1,7 +1,7 @@
 package com.romangraef.betterscaffolding.blocks
 
 import com.romangraef.betterscaffolding.*
-import com.romangraef.betterscaffolding.registries.BBlock
+import com.romangraef.betterscaffolding.items.PlankItem.Companion.plankDirection
 import com.romangraef.betterscaffolding.registries.BItems
 import net.fabricmc.fabric.api.client.model.ModelProviderContext
 import net.fabricmc.fabric.api.client.model.ModelResourceProvider
@@ -22,7 +22,6 @@ import net.minecraft.util.StringIdentifiable
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.util.shape.VoxelShape
-import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.BlockView
 import net.minecraft.world.World
 import net.minecraft.world.WorldAccess
@@ -65,7 +64,7 @@ object Scaffolding {
             NORTH -> LegPosition.NORTH_WEST to LegPosition.NORTH_EAST
             SOUTH -> LegPosition.SOUTH_WEST to LegPosition.SOUTH_EAST
             WEST -> LegPosition.NORTH_WEST to LegPosition.SOUTH_WEST
-            EAST -> LegPosition.NORTH_WEST to LegPosition.SOUTH_EAST
+            EAST -> LegPosition.NORTH_EAST to LegPosition.SOUTH_EAST
         }
 
         fun toDirection(): Direction = when (this) {
@@ -191,6 +190,8 @@ object Scaffolding {
         fun hasPoles(blockState: BlockState) =
             PolePosition.values().any { hasPole(it, blockState) }
 
+        fun hasStairs(blockState: BlockState) = blockState[States.PLANK].isStairs()
+
         fun hasConnection(polePosition: PolePosition, state: BlockState) =
             state[polePosition.toProperty()] == PoleState.HEAD
 
@@ -232,35 +233,6 @@ object Scaffolding {
             return blockState
         }
 
-        fun checkStairPositionOrUpdate(
-            world: WorldAccess,
-            blockPos: BlockPos,
-            blockState: BlockState,
-        ): BlockState {
-            if (!blockState[States.PLANK].isStairs()) return blockState
-            val (lowerSide, upperSide) = blockState[States.PLANK].toPolePositions() ?: return blockState
-            val withoutPlanks = blockState.with(States.PLANK, PlankState.NONE)
-            //lowerside code
-            val belowPos = blockPos.offset(Direction.DOWN)
-            val belowState = world.getBlockState(belowPos)
-            if (belowState.isAir || belowState.block == this && !hasPole(lowerSide, belowState)) {
-                val lowerNeighborState = world.getBlockState(belowPos.offset(lowerSide.toDirection()))
-                if (lowerNeighborState.block != this) return withoutPlanks
-                if (lowerNeighborState[States.PLANK] != blockState[States.PLANK])
-                    if (!hasPole(upperSide, lowerNeighborState)) return withoutPlanks
-            }
-            //upperside code
-            if (!hasPole(upperSide, blockState)) {
-                val upperNeighborPos = blockPos.offset(upperSide.toDirection())
-                val upperNeighborState = world.getBlockState(upperNeighborPos)
-                if (upperNeighborState.block == this) {
-                    if (upperNeighborState[States.PLANK].toPolePositions()?.toList()?.contains(upperSide) != true)
-                        return withoutPlanks
-                }
-            }
-            return blockState
-        }
-
         fun hasPlanks(blockState: BlockState) = blockState[States.PLANK] != PlankState.NONE
 
         fun hasPlank(blockState: BlockState, plankState: PlankState) = blockState[States.PLANK] == plankState
@@ -275,16 +247,69 @@ object Scaffolding {
             if (hasPoles(blockState)) {
                 i++
                 result = checkPolePositionOrUpdate(world, blockPos, result)
+                result = updateAllPoles(world.getBlockState(blockPos.offset(Direction.UP)), result)
+            }
+            if (hasStairs(blockState)) {
+                val (down, up) = blockState[States.PLANK].toPolePositions()!!
+                result = updateValidStairAttachment(
+                    blockState,
+                    world.getBlockState(blockPos.down().offset(down.toDirection())),
+                    world.getBlockState(blockPos.offset(up.toDirection())),
+                    world.getBlockState(blockPos.down()),
+                    world.getBlockState(blockPos.offset(up.toDirection()).up())
+                )
             }
             if (hasPlanks(blockState)) {
                 i++
                 if (blockState[States.PLANK].isPlank())
                     result = checkPlankPositionOrUpdate(world, blockPos, result)
-                if (blockState[States.PLANK].isStairs())
-                    result = checkStairPositionOrUpdate(world, blockPos, blockState)
             }
             if (i == 0) return Blocks.AIR.defaultState
             return result
+        }
+
+        private fun updateValidStairAttachment(
+            blockState: BlockState,
+            nextBelow: BlockState,
+            nextEven: BlockState,
+            below: BlockState,
+            nextAbove: BlockState
+        ): BlockState {
+            if (!hasStairs(blockState))
+                return blockState
+            val (down, up) = blockState[States.PLANK].toPolePositions()!!
+            val plankDir = up.toDirection().plankDirection
+            val WITHOUT_STAIRS = blockState.with(States.PLANK, PlankState.NONE)
+            if (nextAbove.block != this || nextAbove[States.PLANK] != blockState[States.PLANK]) {
+                if (!hasPole(up, blockState)) {
+                    if (nextEven.isAir) return WITHOUT_STAIRS
+                    if (nextEven.block == this) {
+                        if (!hasPlank(nextEven, plankDir))
+                            return WITHOUT_STAIRS
+                    }
+                }
+            }
+            if (nextBelow.block != this || (!hasPlank(
+                    nextBelow,
+                    plankDir
+                ) && nextBelow[States.PLANK] != blockState[States.PLANK])
+            ) {
+                if (below.isAir) return WITHOUT_STAIRS
+                if (below.block == this) {
+                    if (!hasPole(down, below))
+                        return WITHOUT_STAIRS
+                }
+            }
+            return blockState
+        }
+
+        private fun updateAllPoles(top: BlockState, blockState: BlockState): BlockState {
+            var bs = blockState
+            bs = updateSingularPole(States.POLE_N, bs, top)
+            bs = updateSingularPole(States.POLE_W, bs, top)
+            bs = updateSingularPole(States.POLE_S, bs, top)
+            bs = updateSingularPole(States.POLE_E, bs, top)
+            return bs
         }
 
         private fun updateSingularPole(
@@ -292,7 +317,7 @@ object Scaffolding {
             bs: BlockState,
             top: BlockState
         ): BlockState {
-            val isTop = if (top.block == BBlock.scaffoldMicroBlock)
+            val isTop = if (top.block == this)
                 top[prop] == PoleState.NONE
             else
                 true
@@ -314,11 +339,6 @@ object Scaffolding {
             if (bs.block != this) throw IllegalStateException("Invalid initial block state during microblock update: $bs")
             bs = updater(bs)
             if (bs.block != this) throw IllegalStateException("Invalid updated block state during microblock update: $bs")
-            val top = world.getBlockState(pos.offset(Direction.UP))
-            bs = updateSingularPole(States.POLE_N, bs, top)
-            bs = updateSingularPole(States.POLE_W, bs, top)
-            bs = updateSingularPole(States.POLE_S, bs, top)
-            bs = updateSingularPole(States.POLE_E, bs, top)
             if (oldBs == bs) return
             world.setBlockState(pos, bs, NOTIFY_ALL or SKIP_LIGHTING_UPDATES)
             world.blockTickScheduler.schedule(pos, this, 1)
@@ -379,6 +399,7 @@ object Scaffolding {
     }
 
     object Model : UnbakedModel {
+        val MAIN_MODEL = BetterScaffolding.id("block/main")
 
         object Provider : ModelResourceProvider {
             val modelResource = BetterScaffolding.id("block/micro_block")
@@ -395,14 +416,15 @@ object Scaffolding {
             (LegPosition.values().map { it.getModelId() }
                     + PolePosition.values().map { it.getConnectionModelId() }
                     + PlankState.values().mapNotNull { it.getModelId() }
+                    + listOf(MAIN_MODEL)
                     ).toMutableList()
 
         override fun getTextureDependencies(
             unbakedModelGetter: Function<Identifier, UnbakedModel>,
             unresolvedTextureReferences: MutableSet<com.mojang.datafixers.util.Pair<String, String>>
-        ): MutableCollection<SpriteIdentifier> = modelDependencies.flatMap {
+        ): MutableCollection<SpriteIdentifier> = (modelDependencies.flatMap {
             unbakedModelGetter.apply(it).getTextureDependencies(unbakedModelGetter, unresolvedTextureReferences)
-        }.toMutableList()
+        }).toMutableList()
 
         override fun bake(
             loader: ModelLoader,
@@ -410,17 +432,24 @@ object Scaffolding {
             rotationContainer: ModelBakeSettings,
             modelId: Identifier
         ): BakedModel = MultipartBakedModel(
-            LegPosition.values().map<LegPosition, ImmutablePair<Predicate<BlockState>, BakedModel>> { pos ->
-                ImmutablePair(
-                    Predicate { Block.hasLeg(pos, it) },
-                    loader.bake(pos.getModelId(), rotationContainer)
+            listOf(
+                ImmutablePair<Predicate<BlockState>, BakedModel>(
+                    Predicate { false },
+                    loader.bake(MAIN_MODEL, rotationContainer)
                 )
-            } + PolePosition.values().map<PolePosition, ImmutablePair<Predicate<BlockState>, BakedModel>> { pos ->
-                ImmutablePair(
-                    Predicate { Block.hasConnection(pos, it) },
-                    loader.bake(pos.getConnectionModelId(), rotationContainer)
-                )
-            } + PlankState.values().filter { it != PlankState.NONE }
+            ) +
+                    LegPosition.values().map<LegPosition, ImmutablePair<Predicate<BlockState>, BakedModel>> { pos ->
+                        ImmutablePair(
+                            Predicate { Block.hasLeg(pos, it) },
+                            loader.bake(pos.getModelId(), rotationContainer)
+                        )
+                    } + PolePosition.values()
+                .map<PolePosition, ImmutablePair<Predicate<BlockState>, BakedModel>> { pos ->
+                    ImmutablePair(
+                        Predicate { Block.hasConnection(pos, it) },
+                        loader.bake(pos.getConnectionModelId(), rotationContainer)
+                    )
+                } + PlankState.values().filter { it != PlankState.NONE }
                 .map<PlankState, ImmutablePair<Predicate<BlockState>, BakedModel>> { state ->
                     ImmutablePair(
                         Predicate { Block.hasPlank(it, state) },
