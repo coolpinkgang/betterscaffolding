@@ -392,7 +392,13 @@ object Scaffolding {
         override fun getPickStack(world: BlockView, pos: BlockPos, state: BlockState): ItemStack =
             ItemStack(BItems.pole, 1)
 
-        override fun onBreak(world: World?, pos: BlockPos?, state: BlockState?, player: PlayerEntity?) {
+        override fun onBreak(world: World, pos: BlockPos, state: BlockState, player: PlayerEntity?) {
+            if (hasStairs(state)) {
+                val (down, up) = state[States.PLANK].toPolePositions()!!
+                listOf(pos.offset(down.toDirection()).down(), pos.offset(up.toDirection()).up())
+                    .filter { world.getBlockState(it).block == this }
+                    .forEach { world.blockTickScheduler.schedule(it, this, 1) }
+            }
             super.onBreak(world, pos, state, player) //TODO: do this but how?
         }
 
