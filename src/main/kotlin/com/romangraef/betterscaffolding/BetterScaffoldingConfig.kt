@@ -9,6 +9,13 @@ class BetterScaffoldingConfig : ConfigData {
     @ConfigEntry.Gui.CollapsibleObject
     var groupScaffolding = ScaffoldingBlockConfig()
 
+    @ConfigEntry.Gui.CollapsibleObject
+    var groupForklift = ForkliftConfig()
+    
+    class ForkliftConfig {
+        var blockEntityWhitelist = listOf("minecraft:chest")
+    }
+    
     class ScaffoldingBlockConfig {
         var maxLength = 5
         var minLength = 1

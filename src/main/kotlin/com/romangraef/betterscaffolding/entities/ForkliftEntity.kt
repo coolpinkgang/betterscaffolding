@@ -9,6 +9,7 @@ import net.minecraft.block.Block
 import net.minecraft.block.BlockEntityProvider
 import net.minecraft.block.BlockState
 import net.minecraft.block.Blocks
+import net.minecraft.block.entity.BlockEntity
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.MovementType
@@ -118,6 +119,7 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
                     -1
         }
 
+    var pickedUpNbtData: NbtCompound? = null
 
     override fun getMountedHeightOffset(): Double = 0.0
     override fun initDataTracker() {
@@ -185,6 +187,8 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
         }
     }
 
+    val blockEntityWhitelist: List<String> = BetterScaffolding.config.groupForklift.blockEntityWhitelist
+    
     fun pickOrDropBlock() {
         if (pickupDelay > 0)
             return
@@ -197,8 +201,11 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
         if (b != null) {
             if (world.getBlockState(interactPos).isAir) {
                 world.setBlockState(interactPos, b)
+                if (pickedUpNbtData != null)
+                    world.getBlockEntity(interactPos)!!.readNbt(pickedUpNbtData)
                 world.blockTickScheduler.schedule(interactPos, b.block, 1)
                 pickedUpBlock = null
+                pickedUpNbtData = null
             } else
                 p.sendMessage(BetterScaffolding.error("blockalreadypresent"), true)
         } else {
@@ -208,7 +215,10 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
                     p.sendMessage(BetterScaffolding.error("noblockfound"), true)
                 }
                 world.getBlockEntity(interactPos) != null -> {
-                    p.sendMessage(BetterScaffolding.error("invalidblockfound"), true)
+                    if (blockEntityWhitelist.contains(Registry.BLOCK.getKey(ns.block).get().value.toString())) {
+                        pickedUpBlock = ns
+                        pickedUpNbtData = world.getBlockEntity(interactPos)!!.writeNbt(NbtCompound())
+                    } else p.sendMessage(BetterScaffolding.error("invalidblockfound"), true)
                 }
                 else -> {
                     pickedUpBlock = ns
