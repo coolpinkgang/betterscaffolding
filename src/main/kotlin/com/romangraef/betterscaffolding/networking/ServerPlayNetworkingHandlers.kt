@@ -24,15 +24,17 @@ object ServerPlayNetworkingHandlers {
 
     init {
         handle(ModNetworkingConstants.INTERACT_FORKLIFT_PACKET_ID) { minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender ->
+            val interaction = packetByteBuf.readEnumConstant(ForkliftInteractions::class.java)
             val forklift = serverPlayerEntity.vehicle as? ForkliftEntity ?: return@handle
-            when (packetByteBuf.readEnumConstant(ForkliftInteractions::class.java)) {
-                ForkliftInteractions.FORK_UP -> forklift.forkHeight =
-                    MathHelper.clamp(forklift.forkHeight + 0.05F, 0F, 1F)
-                ForkliftInteractions.FORK_DOWN -> forklift.forkHeight =
-                    MathHelper.clamp(forklift.forkHeight - 0.05F, 0F, 1F)
-                ForkliftInteractions.PICKUP_BLOCK -> forklift.pickOrDropBlock()
+            minecraftServer.execute {
+                when (interaction) {
+                    ForkliftInteractions.FORK_UP -> forklift.forkHeight =
+                        MathHelper.clamp(forklift.forkHeight + 0.05F, 0F, 1F)
+                    ForkliftInteractions.FORK_DOWN -> forklift.forkHeight =
+                        MathHelper.clamp(forklift.forkHeight - 0.05F, 0F, 1F)
+                    ForkliftInteractions.PICKUP_BLOCK -> forklift.pickOrDropBlock()
+                }
             }
-            Unit
         }
     }
 }

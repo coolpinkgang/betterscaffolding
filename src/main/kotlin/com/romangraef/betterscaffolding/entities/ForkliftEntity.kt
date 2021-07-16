@@ -1,15 +1,14 @@
 package com.romangraef.betterscaffolding.entities
 
 import com.romangraef.betterscaffolding.BetterScaffolding
-import com.romangraef.betterscaffolding.registries.BItems
 import com.romangraef.betterscaffolding.registries.BEntities
+import com.romangraef.betterscaffolding.registries.BItems
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.block.Block
 import net.minecraft.block.BlockEntityProvider
 import net.minecraft.block.BlockState
 import net.minecraft.block.Blocks
-import net.minecraft.block.entity.BlockEntity
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.MovementType
@@ -137,12 +136,19 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
                 NbtHelper.toBlockState(nbt.getCompound("pickedUpBlock"))
             else
                 null
+        pickedUpNbtData =
+            if (nbt.contains("pickedupBlockData"))
+                nbt.getCompound("pickedupBlockData")
+            else null
     }
 
     override fun writeCustomDataToNbt(nbt: NbtCompound) {
         nbt.putFloat("forkHeight", forkHeight)
-        if (pickedUpBlock != null)
+        if (pickedUpBlock != null) {
             nbt.put("pickedUpBlock", NbtHelper.fromBlockState(pickedUpBlock))
+            if (pickedUpNbtData != null)
+                nbt.put("pickedupBlockData", pickedUpNbtData)
+        }
     }
 
     override fun createSpawnPacket(): Packet<*> = EntitySpawnS2CPacket(this)
@@ -187,8 +193,16 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
         }
     }
 
-    val blockEntityWhitelist: List<String> = BetterScaffolding.config.groupForklift.blockEntityWhitelist
-    
+    // Nea: pickupable - speaking english is my passion
+    fun isBlockPickupable(blockState: BlockState, pos: BlockPos): Boolean {
+        if (blockState.isAir)
+            return false
+        val whiteList = BetterScaffolding.config.groupForklift.blockWhitelist
+        if (whiteList.contains(Registry.BLOCK.getKey(blockState.block).get().value.toString()))
+            return true
+        return blockState.block !is BlockEntityProvider && blockState.getHardness(world, pos) >= 0
+    }
+
     fun pickOrDropBlock() {
         if (pickupDelay > 0)
             return
@@ -202,7 +216,7 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
             if (world.getBlockState(interactPos).isAir) {
                 world.setBlockState(interactPos, b)
                 if (pickedUpNbtData != null)
-                    world.getBlockEntity(interactPos)!!.readNbt(pickedUpNbtData)
+                    world.getBlockEntity(interactPos)?.readNbt(pickedUpNbtData)
                 world.blockTickScheduler.schedule(interactPos, b.block, 1)
                 pickedUpBlock = null
                 pickedUpNbtData = null
@@ -214,15 +228,17 @@ class ForkliftEntity(entityType: EntityType<*>, world: World) : Entity(entityTyp
                 ns.isAir -> {
                     p.sendMessage(BetterScaffolding.error("noblockfound"), true)
                 }
-                world.getBlockEntity(interactPos) != null -> {
-                    if (blockEntityWhitelist.contains(Registry.BLOCK.getKey(ns.block).get().value.toString())) {
-                        pickedUpBlock = ns
-                        pickedUpNbtData = world.getBlockEntity(interactPos)!!.writeNbt(NbtCompound())
-                    } else p.sendMessage(BetterScaffolding.error("invalidblockfound"), true)
+                isBlockPickupable(ns, interactPos) -> {
+                    pickedUpBlock = ns
+                    val nbt = world.getBlockEntity(interactPos)
+                    if (nbt != null) {
+                        pickedUpNbtData = nbt.writeNbt(NbtCompound())
+                        world.removeBlockEntity(interactPos)
+                    }
+                    world.setBlockState(interactPos, Blocks.AIR.defaultState, Block.SKIP_DROPS or Block.NOTIFY_ALL)
                 }
                 else -> {
-                    pickedUpBlock = ns
-                    world.setBlockState(interactPos, Blocks.AIR.defaultState)
+                    p.sendMessage(BetterScaffolding.error("invalidblockfound"), true)
                 }
             }
         }

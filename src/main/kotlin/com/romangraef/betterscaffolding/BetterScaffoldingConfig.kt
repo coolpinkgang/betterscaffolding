@@ -13,7 +13,7 @@ class BetterScaffoldingConfig : ConfigData {
     var groupForklift = ForkliftConfig()
     
     class ForkliftConfig {
-        var blockEntityWhitelist = listOf("minecraft:chest")
+        var blockWhitelist = listOf("minecraft:chest")
     }
     
     class ScaffoldingBlockConfig {
