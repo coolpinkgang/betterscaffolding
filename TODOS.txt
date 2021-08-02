@@ -1,6 +1,6 @@
 Forklift:
- - Make blockentities (with either whitelist or blacklist) pickupable
  - Sounds while driving / moving, maybe something royalty free, or self recorded.
+ - Pick up entities / players.
 
 Scaffolding:
  - Texturing (pls jannis, do this, i(nea) only know how to render entities)
