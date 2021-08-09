@@ -4,3 +4,12 @@ Added:
  - Forklifts (including certification)
  - Multiblock scaffolding (planks and poles)
 
+========================================
+1.1.0 - Undead Update
+
+Added:
+ - Undead construction sites (World Generation)
+
+Updated:
+ - Multiblock scaffolding (Added stairs)
+

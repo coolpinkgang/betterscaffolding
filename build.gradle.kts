@@ -68,8 +68,6 @@ curseforge {
     })
     this.project(closureOf<com.matthewprenger.cursegradle.CurseProject> {
         id = curseforgeId
-        print("c:$curseforgeToken")
-
         apiKey = if (project.properties.getOrDefault("curse", "no") == "confirm") (curseforgeToken ?: "") else ""
         changelog = changelogTxt
         addGameVersion("Fabric")
@@ -83,10 +81,10 @@ curseforge {
             requiredDependency("cloth-config")
             requiredDependency("fabric-language-kotlin")
         })
+        mainArtifact(tasks.getByName("remapJar"), closureOf<com.matthewprenger.cursegradle.CurseArtifact> {
+            displayName = modVersionName
+        })
         afterEvaluate {
-            mainArtifact(tasks.getByName("remapJar"), closureOf<com.matthewprenger.cursegradle.CurseArtifact> {
-                displayName = modVersionName
-            })
             uploadTask.dependsOn("remapJar")
         }
     })

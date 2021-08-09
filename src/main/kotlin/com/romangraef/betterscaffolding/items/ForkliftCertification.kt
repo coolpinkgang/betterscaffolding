@@ -1,15 +1,18 @@
 package com.romangraef.betterscaffolding.items
 
 import com.romangraef.betterscaffolding.BetterScaffolding
+import net.minecraft.client.MinecraftClient
 import net.minecraft.client.item.TooltipContext
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.Item
+import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
+import net.minecraft.util.collection.DefaultedList
 import net.minecraft.world.World
 import java.util.*
 
@@ -17,6 +20,15 @@ private val PlayerInventory.all: Sequence<ItemStack?>
     get() = (0..this.size()).asSequence().map { this.getStack(it) }
 
 class ForkliftCertification(settings: Settings) : Item(settings.maxCount(1)) {
+
+
+    override fun appendStacks(group: ItemGroup, stacks: DefaultedList<ItemStack>) {
+        super.appendStacks(group, stacks)
+        if (isIn(group)) {
+            stacks.add(createEmptyLicense())
+        }
+    }
+
     override fun appendTooltip(
         stack: ItemStack,
         world: World?,
